@@ -9,7 +9,7 @@ module Authenticatable
 
   def authenticate_admin!
     token = extract_token
-    raise Auth::AuthenticationError, "Missing token" unless token
+    raise Auth::AuthenticationError, "Missing or invalid token" if token.blank?
     raise Auth::AuthenticationError, "Token has been revoked" if token_revoked?(token)
 
     decoded = Auth::JsonWebToken.decode(token)

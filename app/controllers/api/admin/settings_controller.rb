@@ -1,6 +1,10 @@
 module Api
   module Admin
     class SettingsController < BaseController
+      skip_after_action :verify_authorized
+      skip_after_action :verify_policy_scoped
+      after_action :verify_authorized, only: %i[show create update]
+
       def show
         setting = Setting.find_by!(branch_id: resolve_branch_id)
         authorize setting

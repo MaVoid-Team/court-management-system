@@ -61,7 +61,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_24_000013) do
     t.index ["court_id", "date"], name: "index_bookings_on_court_id_and_date"
     t.index ["court_id"], name: "index_bookings_on_court_id"
     t.index ["status"], name: "index_bookings_on_status"
-    t.exclusion_constraint "court_id WITH =, date WITH =, tsrange(('2000-01-01'::date + start_time)::timestamp, ('2000-01-01'::date + end_time)::timestamp) WITH &&", using: :gist, where: "status = 0", name: "no_overlapping_confirmed_bookings"
+    t.exclusion_constraint "court_id WITH =, date WITH =, tsrange(('2000-01-01'::date + start_time), ('2000-01-01'::date + end_time)) WITH &&", where: "status = 0", using: :gist, name: "no_overlapping_confirmed_bookings"
   end
 
   create_table "branches", force: :cascade do |t|
@@ -132,13 +132,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_24_000013) do
 
   create_table "settings", force: :cascade do |t|
     t.bigint "branch_id", null: false
+    t.integer "closing_hour", default: 23, null: false
     t.string "contact_email"
     t.string "contact_phone"
     t.datetime "created_at", null: false
+    t.integer "opening_hour", default: 8, null: false
     t.datetime "updated_at", null: false
     t.string "whatsapp_number"
-    t.integer "opening_hour", default: 8, null: false
-    t.integer "closing_hour", default: 23, null: false
     t.index ["branch_id"], name: "index_settings_on_branch_id", unique: true
   end
 

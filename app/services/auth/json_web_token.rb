@@ -10,8 +10,22 @@ module Auth
     def self.decode(token)
       decoded = JWT.decode(token, SECRET_KEY)[0]
       HashWithIndifferentAccess.new(decoded)
-    rescue JWT::DecodeError, JWT::ExpiredSignature => e
-      raise Auth::AuthenticationError, e.message
+    rescue JWT::ExpiredSignature
+      raise Auth::AuthenticationError, "Token has expired"
+    rescue JWT::DecodeError => e
+      message = decode_error_message(e.message)
+      raise Auth::AuthenticationError, message
+    end
+
+    def self.decode_error_message(jwt_message)
+      case jwt_message
+      when /not enough|too many segments/i
+        "Invalid or malformed token"
+      when /signature/i
+        "Invalid token signature"
+      else
+        "Invalid token"
+      end
     end
   end
 

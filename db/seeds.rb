@@ -1,121 +1,126 @@
 puts "Seeding database..."
 
-branch1 = Branch.create!(
-  name: "Downtown Sports Center",
-  address: "123 Main Street, Downtown",
-  timezone: "Africa/Cairo",
-  active: true
-)
+branch1 = Branch.find_or_create_by!(name: "Downtown Sports Center") do |b|
+  b.address = "123 Main Street, Downtown"
+  b.timezone = "Africa/Cairo"
+  b.active = true
+end
 
-branch2 = Branch.create!(
-  name: "Uptown Athletic Club",
-  address: "456 Park Avenue, Uptown",
-  timezone: "Africa/Cairo",
-  active: true
-)
+branch2 = Branch.find_or_create_by!(name: "Uptown Athletic Club") do |b|
+  b.address = "456 Park Avenue, Uptown"
+  b.timezone = "Africa/Cairo"
+  b.active = true
+end
 
-Setting.create!(
-  branch: branch1,
-  whatsapp_number: "201234567890",
-  contact_email: "downtown@courtmgmt.com",
-  contact_phone: "+20-123-456-7890"
-)
+Setting.find_or_create_by!(branch: branch1) do |s|
+  s.whatsapp_number = "201234567890"
+  s.contact_email = "downtown@courtmgmt.com"
+  s.contact_phone = "+20-123-456-7890"
+  s.opening_hour = 8
+  s.closing_hour = 23
+end
 
-Setting.create!(
-  branch: branch2,
-  whatsapp_number: "209876543210",
-  contact_email: "uptown@courtmgmt.com",
-  contact_phone: "+20-987-654-3210"
-)
+Setting.find_or_create_by!(branch: branch2) do |s|
+  s.whatsapp_number = "209876543210"
+  s.contact_email = "uptown@courtmgmt.com"
+  s.contact_phone = "+20-987-654-3210"
+  s.opening_hour = 8
+  s.closing_hour = 23
+end
 
-super_admin = Admin.create!(
-  email: "superadmin@courtmgmt.com",
-  password: "password123",
-  password_confirmation: "password123",
-  role: :super_admin,
-  branch: nil
-)
+super_admin = Admin.find_or_create_by!(email: "superadmin@courtmgmt.com") do |a|
+  a.password = "password123"
+  a.password_confirmation = "password123"
+  a.role = :super_admin
+  a.branch = nil
+end
 
-branch_admin1 = Admin.create!(
-  email: "admin.downtown@courtmgmt.com",
-  password: "password123",
-  password_confirmation: "password123",
-  role: :branch_admin,
-  branch: branch1
-)
+branch_admin1 = Admin.find_or_create_by!(email: "admin.downtown@courtmgmt.com") do |a|
+  a.password = "password123"
+  a.password_confirmation = "password123"
+  a.role = :branch_admin
+  a.branch = branch1
+end
 
-branch_admin2 = Admin.create!(
-  email: "admin.uptown@courtmgmt.com",
-  password: "password123",
-  password_confirmation: "password123",
-  role: :branch_admin,
-  branch: branch2
-)
+branch_admin2 = Admin.find_or_create_by!(email: "admin.uptown@courtmgmt.com") do |a|
+  a.password = "password123"
+  a.password_confirmation = "password123"
+  a.role = :branch_admin
+  a.branch = branch2
+end
 
-court1a = Court.create!(branch: branch1, name: "Court A", price_per_hour: 150.00, active: true)
-court1b = Court.create!(branch: branch1, name: "Court B", price_per_hour: 200.00, active: true)
-court2a = Court.create!(branch: branch2, name: "Court Alpha", price_per_hour: 175.00, active: true)
-court2b = Court.create!(branch: branch2, name: "Court Beta", price_per_hour: 225.00, active: true)
+court1a = Court.find_or_create_by!(branch: branch1, name: "Court A") do |c|
+  c.price_per_hour = 150.00
+  c.active = true
+end
+court1b = Court.find_or_create_by!(branch: branch1, name: "Court B") do |c|
+  c.price_per_hour = 200.00
+  c.active = true
+end
+court2a = Court.find_or_create_by!(branch: branch2, name: "Court Alpha") do |c|
+  c.price_per_hour = 175.00
+  c.active = true
+end
+court2b = Court.find_or_create_by!(branch: branch2, name: "Court Beta") do |c|
+  c.price_per_hour = 225.00
+  c.active = true
+end
 
-Package.create!(branch: nil, title: "Starter Pack", description: "10 hours of court time", price: 1200.00)
-Package.create!(branch: branch1, title: "Downtown Monthly", description: "Unlimited play for one month", price: 3000.00)
-Package.create!(branch: branch2, title: "Uptown Weekend Pass", description: "Weekend access for a month", price: 1800.00)
+Package.find_or_create_by!(branch: nil, title: "Starter Pack") do |p|
+  p.description = "10 hours of court time"
+  p.price = 1200.00
+end
+Package.find_or_create_by!(branch: branch1, title: "Downtown Monthly") do |p|
+  p.description = "Unlimited play for one month"
+  p.price = 3000.00
+end
+Package.find_or_create_by!(branch: branch2, title: "Uptown Weekend Pass") do |p|
+  p.description = "Weekend access for a month"
+  p.price = 1800.00
+end
 
-Event.create!(
-  branch: branch1,
-  title: "Summer Padel Tournament",
-  description: "Annual summer tournament with prizes",
-  start_date: 1.month.from_now,
-  participation_price: 250.00,
-  max_participants: 32
-)
+Event.find_or_create_by!(branch: branch1, title: "Summer Padel Tournament") do |e|
+  e.description = "Annual summer tournament with prizes"
+  e.start_date = 1.month.from_now
+  e.participation_price = 250.00
+  e.max_participants = 32
+end
 
-Event.create!(
-  branch: branch2,
-  title: "Beginners Workshop",
-  description: "Learn the basics of padel in a fun environment",
-  start_date: 2.weeks.from_now,
-  participation_price: 100.00,
-  max_participants: 16
-)
+Event.find_or_create_by!(branch: branch2, title: "Beginners Workshop") do |e|
+  e.description = "Learn the basics of padel in a fun environment"
+  e.start_date = 2.weeks.from_now
+  e.participation_price = 100.00
+  e.max_participants = 16
+end
 
 tomorrow = Date.tomorrow
-Booking.create!(
-  branch: branch1,
-  court: court1a,
-  user_name: "Ahmed Hassan",
-  user_phone: "+201001234567",
-  date: tomorrow,
-  start_time: "10:00",
-  end_time: "11:00",
-  hours: 1,
-  total_price: 150.00,
-  status: :confirmed,
-  payment_status: :paid
-)
+Booking.find_or_create_by!(court: court1a, date: tomorrow, start_time: "10:00") do |b|
+  b.branch = branch1
+  b.user_name = "Ahmed Hassan"
+  b.user_phone = "+201001234567"
+  b.end_time = "11:00"
+  b.hours = 1
+  b.total_price = 150.00
+  b.status = :confirmed
+  b.payment_status = :paid
+end
 
-Booking.create!(
-  branch: branch1,
-  court: court1a,
-  user_name: "Mohamed Ali",
-  user_phone: "+201009876543",
-  date: tomorrow,
-  start_time: "14:00",
-  end_time: "16:00",
-  hours: 2,
-  total_price: 300.00,
-  status: :confirmed,
-  payment_status: :pending
-)
+Booking.find_or_create_by!(court: court1a, date: tomorrow, start_time: "14:00") do |b|
+  b.branch = branch1
+  b.user_name = "Mohamed Ali"
+  b.user_phone = "+201009876543"
+  b.end_time = "16:00"
+  b.hours = 2
+  b.total_price = 300.00
+  b.status = :confirmed
+  b.payment_status = :pending
+end
 
-BlockedSlot.create!(
-  branch: branch1,
-  court: court1b,
-  date: tomorrow,
-  start_time: "08:00",
-  end_time: "10:00",
-  reason: "Maintenance"
-)
+BlockedSlot.find_or_create_by!(court: court1b, date: tomorrow, start_time: "08:00") do |s|
+  s.branch = branch1
+  s.end_time = "10:00"
+  s.reason = "Maintenance"
+end
 
 puts "Seeding complete!"
 puts "  Branches: #{Branch.count}"
@@ -125,6 +130,7 @@ puts "  Packages: #{Package.count}"
 puts "  Events: #{Event.count}"
 puts "  Bookings: #{Booking.count}"
 puts "  Blocked Slots: #{BlockedSlot.count}"
+puts "  Settings: #{Setting.count}"
 puts ""
 puts "Super Admin: superadmin@courtmgmt.com / password123"
 puts "Branch Admin 1: admin.downtown@courtmgmt.com / password123"
