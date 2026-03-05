@@ -1,0 +1,67 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, Clock } from "lucide-react";
+
+interface Slot {
+    start_time: string;
+    end_time: string;
+}
+
+interface AvailabilityGridProps {
+    slots: Slot[];
+    selectedSlot: Slot | null;
+    onSelect: (slot: Slot) => void;
+    isLoading?: boolean;
+}
+
+export function AvailabilityGrid({ slots, selectedSlot, onSelect, isLoading }: AvailabilityGridProps) {
+    if (isLoading) {
+        return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 animate-pulse">
+                {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="h-16 bg-muted/50 border border-border/50 rounded-md" />
+                ))}
+            </div>
+        );
+    }
+
+    if (slots.length === 0) {
+        return (
+            <div className="py-12 bg-muted/30 border border-dashed border-border/60 rounded-lg flex flex-col items-center justify-center text-center">
+                <Clock className="w-10 h-10 text-muted-foreground/50 mb-3" />
+                <h4 className="text-lg font-medium">No slots available</h4>
+                <p className="text-sm text-muted-foreground mt-1">Please try another date or court.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {slots.map((slot) => {
+                const isSelected = selectedSlot?.start_time === slot.start_time;
+
+                return (
+                    <Button
+                        key={slot.start_time}
+                        variant="outline"
+                        onClick={() => onSelect(slot)}
+                        className={cn(
+                            "relative flex flex-col items-center justify-center h-16 py-4 px-3 transition-all duration-200 group text-sm font-medium",
+                            isSelected
+                                ? "border-primary bg-primary/10 text-primary shadow-sm ring-1 ring-primary"
+                                : "border-border/50 bg-card hover:border-primary/50 hover:bg-primary/5 hover:-translate-y-0.5"
+                        )}
+                    >
+                        <span>{slot.start_time}</span>
+                        <span className="text-xs opacity-70 mt-1 font-normal">to {slot.end_time}</span>
+                        {isSelected && (
+                            <CheckCircle2 className="w-4 h-4 text-primary absolute -top-2 -right-2 bg-background rounded-full" />
+                        )}
+                    </Button>
+                );
+            })}
+        </div>
+    );
+}

@@ -1,0 +1,96 @@
+"use client";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LogIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { loginFormSchema, LoginFormData } from "@/schemas/auth.schema";
+import { useAuthAPI } from "@/hooks/api/use-auth";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+
+export function LoginForm() {
+    const router = useRouter();
+    const { login, loading, error } = useAuthAPI();
+
+    const form = useForm<LoginFormData>({
+        resolver: zodResolver(loginFormSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+        },
+    });
+
+    const onSubmit = async (data: LoginFormData) => {
+        const res = await login(data);
+        if (res.success) {
+            toast.success("Login successful");
+            router.push("/dashboard");
+        } else {
+            toast.error(res.error?.message || "Failed to login");
+        }
+    };
+
+    return (
+        <Card className="w-full max-w-sm space-y-6 p-8 mt-10 transition-all hover:shadow-md animate-in slide-in-from-bottom-8 duration-500">
+            <div className="space-y-2 text-center">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">Admin Login</h1>
+                <p className="text-sm text-muted-foreground">
+                    Enter your email and password to access the dashboard.
+                </p>
+            </div>
+
+            {error && (
+                <Alert variant="destructive" className="animate-in fade-in" data-testid="login-error-alert">
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="login-form">
+                <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        placeholder="m@example.com"
+                        {...form.register("email")}
+                        disabled={loading}
+                        data-testid="login-email-input"
+                        className={form.formState.errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                    />
+                    {form.formState.errors.email && (
+                        <p className="text-xs text-destructive animate-in slide-in-from-top-1" data-testid="email-error">
+                            {form.formState.errors.email.message}
+                        </p>
+                    )}
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                        id="password"
+                        type="password"
+                        {...form.register("password")}
+                        disabled={loading}
+                        data-testid="login-password-input"
+                        className={form.formState.errors.password ? "border-destructive focus-visible:ring-destructive" : ""}
+                    />
+                    {form.formState.errors.password && (
+                        <p className="text-xs text-destructive animate-in slide-in-from-top-1" data-testid="password-error">
+                            {form.formState.errors.password.message}
+                        </p>
+                    )}
+                </div>
+
+                <Button type="submit" className="w-full mt-4" disabled={loading} data-testid="login-submit-btn">
+                    {loading ? "Logging in..." : "Log in"}
+                    {!loading && <LogIn className="ml-2 h-4 w-4" />}
+                </Button>
+            </form>
+        </Card>
+    );
+}
