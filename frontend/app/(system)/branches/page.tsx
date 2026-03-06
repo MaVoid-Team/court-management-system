@@ -36,8 +36,6 @@ export default function BranchesPage() {
         if (res.success) {
             toast.success("Branch created successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to create branch");
         }
         return res;
     };
@@ -47,8 +45,6 @@ export default function BranchesPage() {
         if (res.success) {
             toast.success("Branch updated successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to update branch");
         }
         return res;
     };
@@ -58,8 +54,6 @@ export default function BranchesPage() {
         if (res.success) {
             toast.success("Branch deleted successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to delete branch");
         }
     };
 

@@ -107,7 +107,7 @@ export function EventFormDialog({ event, branches = [], onSubmit }: EventFormDia
                             : "Create a new event, tournament, or gathering."}
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="event-form">
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="event-form" noValidate>
                     <div className="space-y-2">
                         <Label htmlFor="branch_id">Branch</Label>
                         <Select

@@ -118,7 +118,7 @@ export function BlockedSlotFormDialog({ blockedSlot, branches = [], courts = [],
                             : "Prevent booking for specific hours due to maintenance or other reasons."}
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="blocked-slot-form">
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="blocked-slot-form" noValidate>
                     <div className="space-y-2">
                         <Label htmlFor="branch_id">Branch</Label>
                         <Select

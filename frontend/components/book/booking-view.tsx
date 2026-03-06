@@ -95,7 +95,7 @@ export function BookingView() {
             </div>
 
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" noValidate>
 
                     {/* Step 1 & 2: Court & Date */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

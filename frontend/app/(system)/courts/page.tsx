@@ -56,8 +56,6 @@ export default function CourtsPage() {
         if (res.success) {
             toast.success("Court created successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to create court");
         }
         return res;
     };
@@ -67,8 +65,6 @@ export default function CourtsPage() {
         if (res.success) {
             toast.success("Court updated successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to update court");
         }
         return res;
     };
@@ -78,8 +74,6 @@ export default function CourtsPage() {
         if (res.success) {
             toast.success("Court deleted successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to delete court");
         }
     };
 

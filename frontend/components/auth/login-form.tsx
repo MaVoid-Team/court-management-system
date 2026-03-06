@@ -40,8 +40,6 @@ export function LoginForm() {
         if (res.success) {
             toast.success("Login successful");
             router.push("/dashboard");
-        } else {
-            toast.error(res.error?.message || "Failed to login");
         }
     };
 
@@ -54,13 +52,7 @@ export function LoginForm() {
                 </p>
             </div>
 
-            {error && (
-                <Alert variant="destructive" className="animate-in fade-in" data-testid="login-error-alert">
-                    <AlertDescription>{error}</AlertDescription>
-                </Alert>
-            )}
-
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="login-form">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="login-form" noValidate>
                 <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input

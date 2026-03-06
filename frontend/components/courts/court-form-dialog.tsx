@@ -101,7 +101,7 @@ export function CourtFormDialog({ court, branches = [], onSubmit }: CourtFormDia
                             : "Add a new court to a branch."}
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="court-form">
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="court-form" noValidate>
                     <div className="space-y-2">
                         <Label htmlFor="branch_id">Branch</Label>
                         <Select
