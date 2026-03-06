@@ -13,7 +13,7 @@ export default function SystemLayout({ children }: { children: ReactNode }) {
     const pathname = usePathname();
 
     // Public paths that authenticated users can freely visit (home + public-facing pages)
-    const PUBLIC_PATHS = ["/", "/book", "/event", "/events", "/package"];
+    const PUBLIC_PATHS = ["/", "/book", "/event", "/package"];
     const isPublicPath =
         PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/")) ||
         pathname.includes("/auth/login");

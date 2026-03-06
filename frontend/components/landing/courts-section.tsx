@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/format-currency";
+import { getDefaultBranchId } from "@/lib/branch";
 
 export function CourtsSection() {
     const { courts, loading, error, fetchPublicCourts } = useCourtsAPI();
@@ -16,7 +17,7 @@ export function CourtsSection() {
     const animated = useRef(false);
 
     useEffect(() => {
-        fetchPublicCourts();
+        fetchPublicCourts({ branch_id: getDefaultBranchId() });
     }, [fetchPublicCourts]);
 
     useEffect(() => {

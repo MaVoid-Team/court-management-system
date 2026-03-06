@@ -138,7 +138,7 @@ export function HeroSection() {
                         </Link>
                     </Button>
                     <Button asChild variant="outline" className="hero-btn opacity-0 border-border/80 font-bold h-14 px-8 transition-all duration-200 hover:bg-muted/40 hover:border-border">
-                        <Link href="/events" className="flex items-center">
+                        <Link href="/event" className="flex items-center">
                             Browse Events
                         </Link>
                     </Button>

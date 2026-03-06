@@ -8,6 +8,8 @@ export const eventSchema = z.object({
     start_date: z.string(),
     participation_price: z.string().nullable().optional(),
     max_participants: z.number().nullable().optional(),
+    remaining_spots: z.number().nullable().optional(),
+    whatsapp_redirect_link: z.string().nullable().optional(),
     created_at: z.string(),
     updated_at: z.string(),
 });

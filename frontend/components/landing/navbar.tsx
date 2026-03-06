@@ -2,17 +2,27 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { animate, createScope } from "animejs";
 import { cn } from "@/lib/utils";
 import { UserActions } from "@/components/shared/user-actions";
+import { Menu, X } from "lucide-react";
+
+const NAV_LINKS = [
+    { label: "Packages", href: "/package" },
+    { label: "Events", href: "/event" },
+    { label: "Book a Court", href: "/book" },
+];
 
 export function LandingNavbar() {
     const [scrolled, setScrolled] = useState(false);
     const [hidden, setHidden] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
     const root = useRef<HTMLElement>(null);
     const scope = useRef<ReturnType<typeof createScope> | null>(null);
     const lastScrollY = useRef(0);
     const ticking = useRef(false);
+    const pathname = usePathname();
 
     // Entrance animation
     useEffect(() => {
@@ -51,7 +61,6 @@ export function LandingNavbar() {
                     const delta = currentY - lastScrollY.current;
 
                     setScrolled(currentY > 80);
-                    // Hide when scrolling down past threshold, reveal on scroll up
                     if (currentY > 300 && delta > 8) {
                         setHidden(true);
                     } else if (delta < -4) {
@@ -68,6 +77,11 @@ export function LandingNavbar() {
         window.addEventListener("scroll", onScroll, { passive: true });
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [pathname]);
 
     return (
         <header
@@ -91,27 +105,65 @@ export function LandingNavbar() {
                     </span>
                 </Link>
 
-                {/* Nav Links */}
+                {/* Desktop Nav Links */}
                 <nav className="hidden md:flex items-center gap-10">
-                    {[
-                        { label: "Packages", href: "/packages" },
-                        { label: "Events", href: "/events" },
-                        { label: "Book a Court", href: "/book" },
-                    ].map((link) => (
+                    {NAV_LINKS.map((link) => (
                         <Link
                             key={link.href}
                             href={link.href}
-                            className="nav-link opacity-0 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200 tracking-wide"
+                            className={cn(
+                                "nav-link opacity-0 text-sm font-medium transition-colors duration-200 tracking-wide",
+                                pathname === link.href
+                                    ? "text-foreground"
+                                    : "text-muted-foreground hover:text-foreground"
+                            )}
                         >
                             {link.label}
                         </Link>
                     ))}
                 </nav>
 
-                {/* CTA — delegates all auth state logic to UserActions */}
-                <div className="nav-cta opacity-0">
-                    <UserActions showDashboardLink />
+                {/* Right side: CTA + mobile toggle */}
+                <div className="flex items-center gap-3">
+                    <div className="nav-cta opacity-0">
+                        <UserActions showDashboardLink />
+                    </div>
+                    {/* Mobile menu button */}
+                    <button
+                        className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors duration-200"
+                        onClick={() => setMobileOpen((v) => !v)}
+                        aria-label="Toggle menu"
+                        id="mobile-menu-toggle"
+                    >
+                        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                    </button>
                 </div>
+            </div>
+
+            {/* Mobile Menu */}
+            <div
+                className={cn(
+                    "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
+                    scrolled ? "bg-background/95 backdrop-blur-2xl" : "bg-background/95 backdrop-blur-2xl",
+                    mobileOpen ? "max-h-64 border-b border-border/60" : "max-h-0"
+                )}
+            >
+                <nav className="flex flex-col px-8 pb-6 pt-2 gap-1">
+                    {NAV_LINKS.map((link) => (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            className={cn(
+                                "text-sm font-medium py-2.5 px-3 rounded-lg transition-colors duration-200",
+                                pathname === link.href
+                                    ? "text-foreground bg-muted/60"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                            )}
+                        >
+                            {link.label}
+                        </Link>
+                    ))}
+                </nav>
             </div>
         </header>
     );

@@ -5,14 +5,12 @@ import { ArrowUpRight } from "lucide-react";
 
 const links = {
     Explore: [
-        { label: "Packages", href: "/packages" },
-        { label: "Events", href: "/events" },
+        { label: "Packages", href: "/package" },
+        { label: "Events", href: "/event" },
         { label: "Book a Court", href: "/book" },
     ],
     Platform: [
         { label: "Admin Dashboard", href: "/auth/login" },
-        { label: "REST API", href: "/#api" },
-        { label: "Features", href: "/#features" },
     ],
     Company: [
         { label: "About", href: "#" },
