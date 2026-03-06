@@ -30,6 +30,8 @@ services:
   app:
     build: .
     env_file: .env
+    volumes:
+      - ./config/master.key:/app/config/master.key:ro
     environment:
       RAILS_ENV: production
       DB_HOST: postgres
@@ -57,6 +59,8 @@ services:
   sidekiq:
     build: .
     env_file: .env
+    volumes:
+      - ./config/master.key:/app/config/master.key:ro
     environment:
       RAILS_ENV: production
       DB_HOST: postgres
