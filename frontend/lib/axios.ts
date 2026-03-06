@@ -34,9 +34,18 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             // Clear token and redirect to login if unauthorized
             if (typeof window !== "undefined") {
+                const publicPaths = ["/", "/book", "/event", "/events", "/package"];
+                const onPublicPage = publicPaths.some(
+                    (p) =>
+                        window.location.pathname === p ||
+                        window.location.pathname.startsWith(p + "/")
+                );
+                const onLoginPage = window.location.pathname.includes("/auth/login");
+
                 localStorage.removeItem("auth_token");
-                // Don't redirect if we're already on the login page
-                if (!window.location.pathname.includes("/auth/login")) {
+
+                // Don't redirect if we're already on the login page or a public page
+                if (!onLoginPage && !onPublicPage) {
                     window.location.href = "/auth/login";
                 }
             }

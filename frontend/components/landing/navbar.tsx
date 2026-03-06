@@ -2,10 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { animate, createScope } from "animejs";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { UserActions } from "@/components/shared/user-actions";
 
 export function LandingNavbar() {
     const [scrolled, setScrolled] = useState(false);
@@ -109,13 +108,10 @@ export function LandingNavbar() {
                     ))}
                 </nav>
 
-                {/* CTA */}
-                <Button asChild className="nav-cta opacity-0 group hover:gap-3 transition-all duration-200 h-10 px-5">
-                    <Link href="/auth/login" className="flex items-center gap-2">
-                        Sign In
-                        <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                    </Link>
-                </Button>
+                {/* CTA — delegates all auth state logic to UserActions */}
+                <div className="nav-cta opacity-0">
+                    <UserActions showDashboardLink />
+                </div>
             </div>
         </header>
     );

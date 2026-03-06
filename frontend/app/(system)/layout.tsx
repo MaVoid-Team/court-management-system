@@ -12,11 +12,19 @@ export default function SystemLayout({ children }: { children: ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
 
+    // Public paths that authenticated users can freely visit (home + public-facing pages)
+    const PUBLIC_PATHS = ["/", "/book", "/event", "/events", "/package"];
+    const isPublicPath =
+        PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/")) ||
+        pathname.includes("/auth/login");
+
     useEffect(() => {
-        if (!loading && !isAuthenticated && !pathname.includes("/auth/login")) {
+        // Only redirect to login if the user is unauthenticated AND is trying to
+        // access a protected (system) page — never block the home page or public pages.
+        if (!loading && !isAuthenticated && !isPublicPath) {
             router.push("/auth/login");
         }
-    }, [isAuthenticated, loading, pathname, router]);
+    }, [isAuthenticated, loading, isPublicPath, router]);
 
     // Optionally set up Lenis smooth scroll down the line
 
@@ -29,6 +37,11 @@ export default function SystemLayout({ children }: { children: ReactNode }) {
     }
 
     if (!isAuthenticated) {
+        // Public pages (home, book, event, etc.) are accessible without auth — let them render.
+        // Protected pages will be redirected by the useEffect above.
+        if (isPublicPath) {
+            return <>{children}</>;
+        }
         return null; // Will redirect in useEffect
     }
 
