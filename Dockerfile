@@ -11,7 +11,8 @@ WORKDIR /app
 
 ENV RAILS_ENV=production \
     BUNDLE_WITHOUT="development:test" \
-    BUNDLE_DEPLOYMENT=1
+    BUNDLE_DEPLOYMENT=0 \
+    BUNDLE_FROZEN=false
 
 FROM base AS build
 
