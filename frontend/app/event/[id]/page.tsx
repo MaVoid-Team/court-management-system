@@ -8,13 +8,15 @@ export const metadata = {
     description: "View details and sign up for this event.",
 };
 
-export default function EventDetailPage({ params }: { params: { id: string } }) {
+export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = await params;
+
     return (
         <LenisWrapper>
             <div className="min-h-screen bg-background text-foreground overflow-x-hidden flex flex-col">
                 <LandingNavbar />
                 <main className="flex-1 pt-32 pb-16 px-8 md:px-16 lg:px-24">
-                    <EventDetail id={params.id} />
+                    <EventDetail id={resolvedParams.id} />
                 </main>
                 <LandingFooter />
             </div>

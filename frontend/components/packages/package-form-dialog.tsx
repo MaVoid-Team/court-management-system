@@ -100,7 +100,7 @@ export function PackageFormDialog({ packageItem, branches = [], onSubmit }: Pack
                             : "Create a new booking package. Can be global or branch specific."}
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="package-form">
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="package-form" noValidate>
                     <div className="space-y-2">
                         <Label htmlFor="branch_id">Branch (Optional)</Label>
                         <Select

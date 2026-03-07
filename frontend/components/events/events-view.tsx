@@ -10,12 +10,13 @@ import { formatDate } from "@/lib/format-date";
 import { CalendarIcon, UsersIcon, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getDefaultBranchId } from "@/lib/branch";
 
 export function EventsView() {
     const { events, loading, error, fetchPublicEvents } = useEventsAPI();
 
     useEffect(() => {
-        fetchPublicEvents({ branch_id: 1, upcoming: true });
+        fetchPublicEvents({ branch_id: getDefaultBranchId(), upcoming: true });
     }, [fetchPublicEvents]);
 
     if (error) {
@@ -23,7 +24,7 @@ export function EventsView() {
             <div className="w-full text-center py-20">
                 <p className="text-destructive mb-4">Error loading events</p>
                 <p className="text-muted-foreground">{error}</p>
-                <Button variant="outline" className="mt-4" onClick={() => fetchPublicEvents({ branch_id: 1, upcoming: true })}>
+                <Button variant="outline" className="mt-4" onClick={() => fetchPublicEvents({ branch_id: getDefaultBranchId(), upcoming: true })}>
                     Try again
                 </Button>
             </div>
@@ -97,7 +98,9 @@ export function EventsView() {
                                 <CardContent className="flex-1 flex flex-col justify-end gap-3 mt-4">
                                     <div className="flex items-center text-sm font-medium text-muted-foreground">
                                         <UsersIcon className="w-5 h-5 mr-3 opacity-70" />
-                                        Max Participants: {event.max_participants || "Unlimited"}
+                                        {event.max_participants ? (
+                                            `${event.remaining_spots !== undefined ? event.remaining_spots : event.max_participants} / ${event.max_participants} Spots`
+                                        ) : "Unlimited Spots"}
                                     </div>
                                     <div className="flex items-center text-sm font-medium text-foreground">
                                         <div className="flex -space-x-1 mr-3 h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-primary p-1 font-bold text-[10px] leading-none">
@@ -110,16 +113,29 @@ export function EventsView() {
                                 </CardContent>
                                 <CardFooter className="gap-3 z-10">
                                     <Button asChild variant="outline" size="lg" className="w-[45%]">
-                                        <Link href={`/events/${event.id}`}>
+                                        <Link href={`/event/${event.id}`}>
                                             Details
                                         </Link>
                                     </Button>
-                                    <Button asChild size="lg" className="flex-1 group">
-                                        <Link href={`/book?event_id=${event.id}`}>
-                                            Sign Up
-                                            <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" />
-                                        </Link>
-                                    </Button>
+                                    {event.max_participants && event.remaining_spots === 0 ? (
+                                        <Button disabled size="lg" className="flex-1">
+                                            Sold Out
+                                        </Button>
+                                    ) : event.whatsapp_redirect_link ? (
+                                        <Button asChild size="lg" className="flex-1 group">
+                                            <a href={event.whatsapp_redirect_link} target="_blank" rel="noopener noreferrer">
+                                                Sign Up
+                                                <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" />
+                                            </a>
+                                        </Button>
+                                    ) : (
+                                        <Button asChild size="lg" className="flex-1 group">
+                                            <Link href={`/book?event_id=${event.id}`}>
+                                                Sign Up
+                                                <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" />
+                                            </Link>
+                                        </Button>
+                                    )}
                                 </CardFooter>
                             </Card>
                         );

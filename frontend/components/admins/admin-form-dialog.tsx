@@ -111,7 +111,7 @@ export function AdminFormDialog({ admin, branches = [], onSubmit }: AdminFormDia
                             : "Invite a new admin to manage the system or a specific branch."}
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="admin-form">
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="admin-form" noValidate>
 
                     {!isEdit && (
                         <>

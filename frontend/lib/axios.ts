@@ -1,4 +1,5 @@
 import axios from "axios";
+import { handleApiError } from "./error-handler";
 
 // Create instance with base URL
 const api = axios.create({
@@ -25,22 +26,14 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor to handle global errors (like 401 Unauthorized)
+// Response interceptor to handle global errors (like 401 Unauthorized, 400 Bad Request)
 api.interceptors.response.use(
     (response) => {
         return response;
     },
     (error) => {
-        if (error.response?.status === 401) {
-            // Clear token and redirect to login if unauthorized
-            if (typeof window !== "undefined") {
-                localStorage.removeItem("auth_token");
-                // Don't redirect if we're already on the login page
-                if (!window.location.pathname.includes("/auth/login")) {
-                    window.location.href = "/auth/login";
-                }
-            }
-        }
+        // Intercept and throw toast globally on every API error
+        handleApiError(error);
         return Promise.reject(error);
     }
 );

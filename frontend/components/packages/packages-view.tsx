@@ -9,12 +9,13 @@ import { ArrowRight, PackageIcon } from "lucide-react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { getDefaultBranchId } from "@/lib/branch";
 
 export function PackagesView() {
     const { packages, loading, error, fetchPublicPackages } = usePackagesAPI();
 
     useEffect(() => {
-        fetchPublicPackages({ branch_id: 1 });
+        fetchPublicPackages({ branch_id: getDefaultBranchId() });
     }, [fetchPublicPackages]);
 
     if (error) {
@@ -22,7 +23,7 @@ export function PackagesView() {
             <div className="w-full text-center py-20">
                 <p className="text-destructive mb-4">Error loading packages</p>
                 <p className="text-muted-foreground">{error}</p>
-                <Button variant="outline" className="mt-4" onClick={() => fetchPublicPackages({ branch_id: 1 })}>
+                <Button variant="outline" className="mt-4" onClick={() => fetchPublicPackages({ branch_id: getDefaultBranchId() })}>
                     Try again
                 </Button>
             </div>

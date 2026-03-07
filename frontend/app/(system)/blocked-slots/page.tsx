@@ -46,8 +46,6 @@ export default function BlockedSlotsPage() {
         if (res.success) {
             toast.success("Dates blocked successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to block slot");
         }
         return res;
     };
@@ -57,8 +55,6 @@ export default function BlockedSlotsPage() {
         if (res.success) {
             toast.success("Blocked slot updated successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to update blocked slot");
         }
         return res;
     };
@@ -68,8 +64,6 @@ export default function BlockedSlotsPage() {
         if (res.success) {
             toast.success("Dates unblocked successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to delete block");
         }
     };
 

@@ -56,8 +56,6 @@ export default function BookingsPage() {
         if (res.success) {
             toast.success(`Payment status updated to ${status}`);
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to update payment");
         }
         return res;
     };
@@ -67,8 +65,6 @@ export default function BookingsPage() {
         if (res.success) {
             toast.success("Booking cancelled successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to cancel booking");
         }
     };
 

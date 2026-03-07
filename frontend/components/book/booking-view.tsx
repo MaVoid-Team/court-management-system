@@ -18,9 +18,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { getDefaultBranchId } from "@/lib/branch";
 
 export function BookingView() {
-    const BRANCH_ID = 1; // Hardcoded branch_id for public usage
+    const BRANCH_ID = getDefaultBranchId();
 
     const { courts, fetchPublicCourts, loading: courtsLoading } = useCourtsAPI();
     const { availability, fetchAvailability, loading: availabilityLoading } = useAvailabilityAPI();
@@ -95,7 +96,7 @@ export function BookingView() {
             </div>
 
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" noValidate>
 
                     {/* Step 1 & 2: Court & Date */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

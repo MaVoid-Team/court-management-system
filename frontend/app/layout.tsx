@@ -37,7 +37,7 @@ export default function RootLayout({
               {children}
             </TooltipProvider>
             {/* Added standard Sonner Toaster */}
-            <Toaster position="bottom-right" theme="system" richColors closeButton />
+            <Toaster position="bottom-right" theme="dark" richColors />
           </AuthProvider>
         </ThemeProvider>
       </body>

@@ -59,8 +59,6 @@ export default function AdminsPage() {
         if (res.success) {
             toast.success("Admin created successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to create admin");
         }
         return res;
     };
@@ -70,8 +68,6 @@ export default function AdminsPage() {
         if (res.success) {
             toast.success("Admin role updated successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to update admin");
         }
         return res;
     };
@@ -81,8 +77,6 @@ export default function AdminsPage() {
         if (res.success) {
             toast.success("Admin deleted successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to delete admin");
         }
     };
 

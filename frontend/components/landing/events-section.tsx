@@ -10,6 +10,7 @@ import Link from "next/link";
 import { formatCurrency } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
 import { CalendarIcon, UsersIcon } from "lucide-react";
+import { getDefaultBranchId } from "@/lib/branch";
 
 export function EventsSection() {
     const { events, loading, error, fetchPublicEvents } = useEventsAPI();
@@ -18,7 +19,7 @@ export function EventsSection() {
     const animated = useRef(false);
 
     useEffect(() => {
-        fetchPublicEvents({ upcoming: true });
+        fetchPublicEvents({ branch_id: getDefaultBranchId(), upcoming: true });
     }, [fetchPublicEvents]);
 
     useEffect(() => {
@@ -82,7 +83,7 @@ export function EventsSection() {
                     {events.length > 0 && (
                         <div className="events-headline opacity-0">
                             <Button asChild variant="outline">
-                                <Link href="/events">View All Events</Link>
+                                <Link href="/event">View All Events</Link>
                             </Button>
                         </div>
                     )}
@@ -104,7 +105,7 @@ export function EventsSection() {
                 ) : error ? (
                     <div className="p-8 border border-destructive/20 bg-destructive/5 rounded-2xl text-center">
                         <p className="text-destructive font-medium mb-2">Failed to load events.</p>
-                        <Button variant="outline" onClick={() => fetchPublicEvents({ upcoming: true })}>Try again</Button>
+                        <Button variant="outline" onClick={() => fetchPublicEvents({ branch_id: getDefaultBranchId(), upcoming: true })}>Try again</Button>
                     </div>
                 ) : events.length === 0 ? (
                     <div className="p-12 border border-border/50 bg-card rounded-2xl text-center">
@@ -149,7 +150,7 @@ export function EventsSection() {
 
                                 <div className="pt-4 border-t border-border/40">
                                     <Button asChild variant="secondary" className="w-full">
-                                        <Link href={`/events/${event.id}`}>
+                                        <Link href={`/event/${event.id}`}>
                                             View Event
                                         </Link>
                                     </Button>

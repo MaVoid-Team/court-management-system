@@ -56,8 +56,6 @@ export default function EventsPage() {
         if (res.success) {
             toast.success("Event created successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to create event");
         }
         return res;
     };
@@ -67,8 +65,6 @@ export default function EventsPage() {
         if (res.success) {
             toast.success("Event updated successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to update event");
         }
         return res;
     };
@@ -78,8 +74,6 @@ export default function EventsPage() {
         if (res.success) {
             toast.success("Event deleted successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to delete event");
         }
     };
 

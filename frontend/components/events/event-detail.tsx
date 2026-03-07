@@ -28,7 +28,7 @@ export function EventDetail({ id }: { id: string }) {
                 <p className="text-destructive mb-4">Error loading event</p>
                 <p className="text-muted-foreground">{error}</p>
                 <Button asChild variant="outline" className="mt-4">
-                    <Link href="/events">Back to Events</Link>
+                    <Link href="/event">Back to Events</Link>
                 </Button>
             </div>
         );
@@ -60,7 +60,7 @@ export function EventDetail({ id }: { id: string }) {
     return (
         <div className="w-full max-w-5xl mx-auto">
             <Button asChild variant="link" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-8 p-0 h-auto gap-2 group">
-                <Link href="/events">
+                <Link href="/event">
                     <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
                     Back to all events
                 </Link>
@@ -141,6 +141,11 @@ export function EventDetail({ id }: { id: string }) {
                                         <p className="text-base font-semibold">
                                             {event.max_participants ? `${event.max_participants} Participants Max` : "Unlimited Spots"}
                                         </p>
+                                        {event.remaining_spots !== undefined && event.max_participants !== null && (
+                                            <p className="text-sm font-medium text-muted-foreground mt-0.5">
+                                                {event.remaining_spots} Spots Remaining
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -153,12 +158,25 @@ export function EventDetail({ id }: { id: string }) {
                                     </div>
 
                                     {isUpcoming ? (
-                                        <Button asChild size="lg" className="w-full text-base font-semibold transition-all group">
-                                            <Link href={`/book?event_id=${event.id}`}>
-                                                Sign Up Now
-                                                <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
-                                            </Link>
-                                        </Button>
+                                        event.max_participants && event.remaining_spots === 0 ? (
+                                            <Button disabled size="lg" className="w-full text-base font-semibold">
+                                                Sold Out
+                                            </Button>
+                                        ) : event.whatsapp_redirect_link ? (
+                                            <Button asChild size="lg" className="w-full text-base font-semibold transition-all group">
+                                                <a href={event.whatsapp_redirect_link} target="_blank" rel="noopener noreferrer">
+                                                    Sign Up via WhatsApp
+                                                    <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
+                                                </a>
+                                            </Button>
+                                        ) : (
+                                            <Button asChild size="lg" className="w-full text-base font-semibold transition-all group">
+                                                <Link href={`/book?event_id=${event.id}`}>
+                                                    Sign Up Now
+                                                    <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
+                                                </Link>
+                                            </Button>
+                                        )
                                     ) : (
                                         <Button disabled size="lg" className="w-full text-base font-semibold">
                                             Event Ended

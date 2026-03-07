@@ -52,8 +52,6 @@ export default function SettingsPage() {
             } else {
                 fetchSettings();
             }
-        } else {
-            toast.error(res.error?.message || "Failed to save settings.");
         }
         return res;
     };

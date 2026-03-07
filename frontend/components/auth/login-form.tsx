@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LogIn } from "lucide-react";
@@ -12,10 +13,19 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
+import { useAuthContext } from "@/contexts/auth-context";
 
 export function LoginForm() {
     const router = useRouter();
+    const { isAuthenticated, loading: authLoading } = useAuthContext();
     const { login, loading, error } = useAuthAPI();
+
+    // Auto-redirect already-authenticated users straight to the dashboard
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            router.replace("/dashboard");
+        }
+    }, [isAuthenticated, authLoading, router]);
 
     const form = useForm<LoginFormData>({
         resolver: zodResolver(loginFormSchema),
@@ -30,8 +40,6 @@ export function LoginForm() {
         if (res.success) {
             toast.success("Login successful");
             router.push("/dashboard");
-        } else {
-            toast.error(res.error?.message || "Failed to login");
         }
     };
 
@@ -44,13 +52,7 @@ export function LoginForm() {
                 </p>
             </div>
 
-            {error && (
-                <Alert variant="destructive" className="animate-in fade-in" data-testid="login-error-alert">
-                    <AlertDescription>{error}</AlertDescription>
-                </Alert>
-            )}
-
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="login-form">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="login-form" noValidate>
                 <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input

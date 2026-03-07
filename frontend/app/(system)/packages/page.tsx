@@ -56,8 +56,6 @@ export default function PackagesPage() {
         if (res.success) {
             toast.success("Package created successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to create package");
         }
         return res;
     };
@@ -67,8 +65,6 @@ export default function PackagesPage() {
         if (res.success) {
             toast.success("Package updated successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to update package");
         }
         return res;
     };
@@ -78,8 +74,6 @@ export default function PackagesPage() {
         if (res.success) {
             toast.success("Package deleted successfully");
             loadData();
-        } else {
-            toast.error(res.error?.message || "Failed to delete package");
         }
     };
 

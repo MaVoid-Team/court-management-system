@@ -92,7 +92,7 @@ export function BranchFormDialog({ branch, onSubmit }: BranchFormDialogProps) {
                             : "Add a new branch location."}
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="branch-form">
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="branch-form" noValidate>
                     <div className="space-y-2">
                         <Label htmlFor="name">Name</Label>
                         <Input
