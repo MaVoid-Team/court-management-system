@@ -4,7 +4,11 @@ module Api
       def index
         courts = policy_scope(Court).includes(:branch)
         courts = courts.where(branch_id: params[:branch_id]) if params[:branch_id].present?
-        render json: CourtSerializer.new(paginate(courts)).serializable_hash, status: :ok
+        courts = courts.active_filter(params[:active]) if params[:active].present?
+        courts = apply_sort(courts, { "name" => :name, "price_per_hour" => :price_per_hour }, { name: :asc })
+
+        result = search_with_pagination(Court, courts, build_court_filter)
+        render json: CourtSerializer.new(result).serializable_hash, status: :ok
       end
 
       def show
@@ -38,6 +42,13 @@ module Api
 
       def court_params
         params.require(:court).permit(:branch_id, :name, :price_per_hour, :active)
+      end
+
+      def build_court_filter
+        parts = []
+        parts << "branch_id = #{params[:branch_id].to_i}" if params[:branch_id].present?
+        parts << "active = #{params[:active].to_s.downcase == 'true'}" if params[:active].present?
+        build_meilisearch_filter(parts)
       end
     end
   end

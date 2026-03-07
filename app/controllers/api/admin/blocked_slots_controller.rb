@@ -5,6 +5,8 @@ module Api
         blocked_slots = policy_scope(BlockedSlot).includes(:court)
         blocked_slots = blocked_slots.where(court_id: params[:court_id]) if params[:court_id].present?
         blocked_slots = blocked_slots.where(date: params[:date]) if params[:date].present?
+        blocked_slots = blocked_slots.for_branch(params[:branch_id]) if params[:branch_id].present?
+        blocked_slots = blocked_slots.in_date_range(params[:from_date], params[:to_date])
         render json: BlockedSlotSerializer.new(paginate(blocked_slots)).serializable_hash, status: :ok
       end
 

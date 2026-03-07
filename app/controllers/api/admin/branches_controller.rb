@@ -3,7 +3,11 @@ module Api
     class BranchesController < BaseController
       def index
         branches = policy_scope(Branch)
-        render json: BranchSerializer.new(paginate(branches)).serializable_hash, status: :ok
+        branches = branches.active_filter(params[:active]) if params[:active].present?
+        branches = apply_sort(branches, { "name" => :name, "created_at" => :created_at }, { name: :asc })
+
+        result = search_with_pagination(Branch, branches, build_branch_filter)
+        render json: BranchSerializer.new(result).serializable_hash, status: :ok
       end
 
       def show
@@ -37,6 +41,12 @@ module Api
 
       def branch_params
         params.require(:branch).permit(:name, :address, :timezone, :active)
+      end
+
+      def build_branch_filter
+        parts = []
+        parts << "active = #{params[:active].to_s.downcase == 'true'}" if params[:active].present?
+        build_meilisearch_filter(parts)
       end
     end
   end

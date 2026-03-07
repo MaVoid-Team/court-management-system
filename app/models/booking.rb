@@ -1,4 +1,12 @@
 class Booking < ApplicationRecord
+  include MeiliSearch::Rails
+
+  meilisearch enqueue: true, raise_on_failure: false do
+    attribute :user_name, :user_phone, :branch_id, :court_id, :date, :status
+    searchable_attributes [:user_name, :user_phone]
+    filterable_attributes [:branch_id, :court_id, :date, :status]
+  end
+
   belongs_to :branch
   belongs_to :court
   has_many :payments, dependent: :destroy
@@ -18,6 +26,12 @@ class Booking < ApplicationRecord
   scope :for_court, ->(court_id) { where(court_id: court_id) }
   scope :on_date, ->(date) { where(date: date) }
   scope :active, -> { where(status: :confirmed) }
+  scope :in_date_range, ->(from_date, to_date) {
+    scope = all
+    scope = scope.where("date >= ?", from_date) if from_date.present?
+    scope = scope.where("date <= ?", to_date) if to_date.present?
+    scope
+  }
 
   def self.overlapping(court_id, date, start_time, end_time)
     where(court_id: court_id, date: date, status: :confirmed)

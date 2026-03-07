@@ -11,6 +11,7 @@ gem "jsonapi-serializer"
 gem "redis"
 gem "sidekiq"
 gem "rack-attack"
+gem "meilisearch-rails"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
 gem "kamal", require: false

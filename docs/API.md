@@ -163,13 +163,26 @@ No authentication required.
 ```
 GET /api/packages
 GET /api/packages?branch_id=1
+GET /api/packages?q=tennis&sort=price.asc
 ```
 
 | Parameter | Type | Description |
 |----------|------|-------------|
 | `branch_id` | integer | Optional. Filter by branch; returns branch + global packages |
+| `q` | string | Optional. Full-text search (title, description) via Meilisearch |
+| `sort` | string | Optional. Sort by `title`, `price`, or `created_at`; append `.asc` or `.desc` (e.g. `price.asc`) |
+| `price_min` | decimal | Optional. Minimum price filter |
+| `price_max` | decimal | Optional. Maximum price filter |
 | `page` | integer | Pagination |
 | `per_page` | integer | Pagination |
+
+#### Show package
+
+```
+GET /api/packages/:id
+```
+
+Returns a single package by ID. No authentication required.
 
 ---
 
@@ -181,12 +194,17 @@ GET /api/packages?branch_id=1
 GET /api/events
 GET /api/events?branch_id=1
 GET /api/events?upcoming=true
+GET /api/events?q=tennis&from_date=2026-01-01&to_date=2026-12-31
 ```
 
 | Parameter | Type | Description |
 |----------|------|-------------|
 | `branch_id` | integer | Optional. Filter by branch |
+| `q` | string | Optional. Full-text search (title, description) via Meilisearch |
 | `upcoming` | boolean | Optional. Only future events |
+| `sort` | string | Optional. Sort by `start_date` or `title`; append `.asc` or `.desc` |
+| `from_date` | string | Optional. Filter events from this date (YYYY-MM-DD) |
+| `to_date` | string | Optional. Filter events until this date (YYYY-MM-DD) |
 | `page` | integer | Pagination |
 | `per_page` | integer | Pagination |
 
@@ -281,6 +299,8 @@ All admin endpoints require `Authorization: Bearer <token>`.
 | PATCH | `/api/admin/branches/:id` | Update branch |
 | DELETE | `/api/admin/branches/:id` | Delete branch |
 
+**Query params (index):** `q` (search name, address), `active` (boolean), `sort` (name, created_at)
+
 **Create/Update body**
 
 ```json
@@ -306,7 +326,7 @@ All admin endpoints require `Authorization: Bearer <token>`.
 | PATCH | `/api/admin/courts/:id` | Update court |
 | DELETE | `/api/admin/courts/:id` | Delete court |
 
-**Query params (index):** `branch_id`
+**Query params (index):** `branch_id`, `active` (boolean), `q` (search name), `sort` (name, price_per_hour)
 
 **Create/Update body**
 
@@ -333,7 +353,7 @@ All admin endpoints require `Authorization: Bearer <token>`.
 | PATCH | `/api/admin/packages/:id` | Update package |
 | DELETE | `/api/admin/packages/:id` | Delete package |
 
-**Query params (index):** `branch_id`
+**Query params (index):** `branch_id`, `q` (search title, description), `sort` (title, price, created_at), `price_min`, `price_max`
 
 **Create/Update body**
 
@@ -362,7 +382,7 @@ All admin endpoints require `Authorization: Bearer <token>`.
 | PATCH | `/api/admin/events/:id` | Update event |
 | DELETE | `/api/admin/events/:id` | Delete event |
 
-**Query params (index):** `branch_id`
+**Query params (index):** `branch_id`, `q` (search title, description), `sort` (start_date, title), `from_date`, `to_date`
 
 **Create/Update body**
 
@@ -389,7 +409,7 @@ All admin endpoints require `Authorization: Bearer <token>`.
 | GET | `/api/admin/bookings/:id` | Show booking |
 | PATCH | `/api/admin/bookings/:id` | Update or cancel booking |
 
-**Query params (index):** `branch_id`, `court_id`, `date`, `status`
+**Query params (index):** `branch_id`, `court_id`, `date`, `status`, `q` (search user_name, user_phone), `from_date`, `to_date`, `sort` (date, created_at)
 
 **Update body (change payment status)**
 
@@ -421,7 +441,7 @@ All admin endpoints require `Authorization: Bearer <token>`.
 | PATCH | `/api/admin/blocked_slots/:id` | Update blocked slot |
 | DELETE | `/api/admin/blocked_slots/:id` | Delete blocked slot |
 
-**Query params (index):** `court_id`, `date`
+**Query params (index):** `court_id`, `date`, `branch_id`, `from_date`, `to_date`
 
 **Create/Update body**
 
@@ -475,6 +495,8 @@ All admin endpoints require `Authorization: Bearer <token>`.
 | POST | `/api/admin/admins` | Create admin |
 | PATCH | `/api/admin/admins/:id` | Update admin |
 | DELETE | `/api/admin/admins/:id` | Delete admin |
+
+**Query params (index):** `branch_id`, `role` (super_admin=0, branch_admin=1), `q` (search email), `sort` (email, created_at)
 
 **Create/Update body**
 

@@ -7,7 +7,11 @@ module Api
         bookings = bookings.where(court_id: params[:court_id]) if params[:court_id].present?
         bookings = bookings.where(date: params[:date]) if params[:date].present?
         bookings = bookings.where(status: params[:status]) if params[:status].present?
-        render json: BookingSerializer.new(paginate(bookings)).serializable_hash, status: :ok
+        bookings = bookings.in_date_range(params[:from_date], params[:to_date])
+        bookings = apply_sort(bookings, { "date" => :date, "created_at" => :created_at }, { date: :desc })
+
+        result = search_with_pagination(Booking, bookings, build_booking_filter)
+        render json: BookingSerializer.new(result).serializable_hash, status: :ok
       end
 
       def show
@@ -37,6 +41,16 @@ module Api
 
       def booking_update_params
         params.require(:booking).permit(:payment_status)
+      end
+
+      def build_booking_filter
+        parts = []
+        parts << "branch_id = #{params[:branch_id].to_i}" if params[:branch_id].present?
+        parts << "court_id = #{params[:court_id].to_i}" if params[:court_id].present?
+        parts << "status = #{params[:status].to_i}" if params[:status].present?
+        parts << "date >= #{params[:from_date]}" if params[:from_date].present?
+        parts << "date <= #{params[:to_date]}" if params[:to_date].present?
+        build_meilisearch_filter(parts)
       end
     end
   end

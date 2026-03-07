@@ -3,8 +3,12 @@ module Api
     class PackagesController < BaseController
       def index
         packages = policy_scope(Package)
-        packages = packages.where(branch_id: params[:branch_id]) if params[:branch_id].present?
-        render json: PackageSerializer.new(paginate(packages)).serializable_hash, status: :ok
+        packages = packages.for_branch(params[:branch_id]) if params[:branch_id].present?
+        packages = packages.price_in_range(params[:price_min], params[:price_max])
+        packages = apply_sort(packages, { "title" => :title, "price" => :price, "created_at" => :created_at }, { created_at: :desc })
+
+        result = search_with_pagination(Package, packages, build_package_filter)
+        render json: PackageSerializer.new(result).serializable_hash, status: :ok
       end
 
       def show

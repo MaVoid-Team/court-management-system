@@ -1,4 +1,12 @@
 class Branch < ApplicationRecord
+  include MeiliSearch::Rails
+
+  meilisearch enqueue: true, raise_on_failure: false do
+    attribute :name, :address, :active
+    searchable_attributes [:name, :address]
+    filterable_attributes [:active]
+  end
+
   has_many :admins, dependent: :destroy
   has_many :courts, dependent: :destroy
   has_many :packages, dependent: :destroy
@@ -11,4 +19,5 @@ class Branch < ApplicationRecord
   validates :timezone, presence: true
 
   scope :active, -> { where(active: true) }
+  scope :active_filter, ->(val) { val.present? ? where(active: ActiveModel::Type::Boolean.new.cast(val)) : all }
 end
