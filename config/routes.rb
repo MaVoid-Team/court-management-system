@@ -2,6 +2,8 @@ require "sidekiq/web"
 
 Rails.application.routes.draw do
   namespace :api do
+    get "branches", to: "branches#index"
+    get "branches/:id", to: "branches#show"
     get "packages/:id", to: "packages#show"
     get "packages", to: "packages#index"
     get "events", to: "events#index"

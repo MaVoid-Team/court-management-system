@@ -14,6 +14,7 @@ class Branch < ApplicationRecord
   has_many :bookings, dependent: :destroy
   has_many :blocked_slots, dependent: :destroy
   has_many :promo_codes, dependent: :destroy
+  has_many :reviews, dependent: :destroy
   has_one :setting, dependent: :destroy
 
   validates :name, presence: true

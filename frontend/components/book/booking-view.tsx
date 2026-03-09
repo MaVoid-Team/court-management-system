@@ -39,63 +39,6 @@ export function BookingView() {
     const { availability, fetchAvailability, loading: availabilityLoading } = useAvailabilityAPI();
     const { createBooking, loading: bookingLoading } = useBookingsAPI();
     const { setting, fetchPublicSettings } = useSettingsAPI();
-    
-    // Temporary mock data for testing (remove when backend is running)
-    const mockBranches: Branch[] = [
-        {
-            id: "1",
-            name: "Main Branch",
-            address: "123 Main St, City",
-            timezone: "UTC",
-            active: true,
-            created_at: "2024-01-01T00:00:00Z",
-            updated_at: "2024-01-01T00:00:00Z"
-        },
-        {
-            id: "2", 
-            name: "North Branch",
-            address: "456 North Ave, City",
-            timezone: "UTC",
-            active: true,
-            created_at: "2024-01-01T00:00:00Z",
-            updated_at: "2024-01-01T00:00:00Z"
-        }
-    ];
-    
-    // Use mock data if real branches are empty (backend not running)
-    const displayBranches = branches.length > 0 ? branches : mockBranches;
-    
-    // Temporary mock courts data for testing (remove when backend is running)
-    const mockCourts: Court[] = [
-        {
-            id: "1",
-            branch_id: 1,
-            name: "Court A",
-            price_per_hour: "50.00",
-            active: true,
-            created_at: "2024-01-01T00:00:00Z",
-            updated_at: "2024-01-01T00:00:00Z",
-            perks: [
-                { id: "1", name: "WiFi", active: true },
-                { id: "2", name: "Parking", active: true }
-            ]
-        } as any,
-        {
-            id: "2",
-            branch_id: 1,
-            name: "Court B", 
-            price_per_hour: "60.00",
-            active: true,
-            created_at: "2024-01-01T00:00:00Z",
-            updated_at: "2024-01-01T00:00:00Z",
-            perks: [
-                { id: "3", name: "Air Conditioning", active: true }
-            ]
-        } as any
-    ];
-    
-    // Use mock data if real courts are empty (backend not running)
-    const displayCourts = courts.length > 0 ? courts : mockCourts;
 
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
@@ -122,15 +65,11 @@ export function BookingView() {
     });
 
     useEffect(() => {
-        console.log('Fetching public branches...');
-        fetchPublicBranches().then(result => {
-            console.log('Branches fetch result:', result);
-        });
+        fetchPublicBranches();
     }, [fetchPublicBranches]);
 
     useEffect(() => {
         if (selectedBranch) {
-            console.log('Selected branch changed:', selectedBranch);
             fetchPublicCourts({ branch_id: Number(selectedBranch.id) });
             fetchPublicSettings({ branch_id: Number(selectedBranch.id) });
         }
@@ -208,11 +147,11 @@ export function BookingView() {
                             >
                                 <FormControl>
                                     <SelectTrigger className="h-12">
-                                        <SelectValue placeholder={t("selectBranchPlaceholder")} />
+                                        <SelectValue placeholder={branchesLoading ? "Loading..." : t("selectBranchPlaceholder")} />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {displayBranches.filter(b => b.active).map((branch) => (
+                                    {branches.filter((b: any) => b.active).map((branch: any) => (
                                         <SelectItem key={branch.id} value={branch.id}>
                                             <div className="flex flex-col">
                                                 <span>{branch.name}</span>
@@ -259,7 +198,7 @@ export function BookingView() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {displayCourts.filter(c => c.active).map((court) => (
+                                                    {courts.filter((c: any) => c.active).map((court: any) => (
                                                         <SelectItem key={court.id} value={court.id}>
                                                             <div className="flex flex-col">
                                                                 <span>{court.name} ({formatCurrency(court.price_per_hour)} {t("perHour")})</span>

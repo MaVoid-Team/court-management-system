@@ -38,6 +38,29 @@ export function useSettingsAPI() {
         }
     }, []);
 
+    const fetchPublicSettings = useCallback(async (params?: { branch_id?: number }) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const query = buildQueryString(params);
+            const response = await api.get(`/api/settings${query}`);
+            if (response.data?.data) {
+                const flatSetting = flattenResource(response.data.data);
+                setSetting(flatSetting);
+                return { success: true, data: flatSetting };
+            }
+            // No setting exists yet for this branch
+            setSetting(null);
+            return { success: true, data: null };
+        } catch (err: any) {
+            setError(err.response?.data?.error || "Failed to fetch settings");
+            setSetting(null);
+            return { success: false, error: err };
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     const createSettings = async (data: SettingFormData) => {
         setLoading(true);
         setError(null);
@@ -71,6 +94,7 @@ export function useSettingsAPI() {
         loading,
         error,
         fetchSettings,
+        fetchPublicSettings,
         createSettings,
         updateSettings,
     };

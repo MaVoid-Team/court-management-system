@@ -11,6 +11,7 @@ class Booking < ApplicationRecord
   belongs_to :court
   belongs_to :promo_code, optional: true
   has_many :payments, dependent: :destroy
+  has_many :reviews, dependent: :destroy
 
   enum :status, { confirmed: 0, cancelled: 1 }
   enum :payment_status, { pending: 0, paid: 1, failed: 2, refunded: 3 }
