@@ -37,8 +37,9 @@ module Api
       private
 
       def resolve_branch_id
-        if current_admin.super_admin? && params[:branch_id].present?
-          params[:branch_id]
+        bid = params[:branch_id].presence || params.dig(:setting, :branch_id).presence
+        if current_admin.super_admin? && bid.present?
+          bid
         elsif current_admin.branch_id.present?
           current_admin.branch_id
         else

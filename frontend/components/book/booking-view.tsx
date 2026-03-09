@@ -137,12 +137,12 @@ export function BookingView() {
                             </h3>
                             <Select
                                 onValueChange={(val) => {
-                                    const branch = branches.find(b => b.id === val);
+                                    const branch = branches.find((b: any) => b.id === val);
                                     setSelectedBranch(branch || null);
                                     setSelectedCourt(null); // Reset court when branch changes
                                     form.setValue("court_id", undefined as any); // Reset court in form
                                 }}
-                                value={selectedBranch?.id}
+                                value={selectedBranch?.id || ""}
                                 disabled={branchesLoading}
                             >
                                 <FormControl>
@@ -189,7 +189,7 @@ export function BookingView() {
                                                     const court = courts.find(c => Number(c.id) === courtId);
                                                     setSelectedCourt(court || null);
                                                 }}
-                                                value={field.value ? String(field.value) : undefined}
+                                                value={field.value ? String(field.value) : ""}
                                                 disabled={courtsLoading}
                                             >
                                                 <FormControl>
