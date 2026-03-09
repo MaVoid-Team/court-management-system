@@ -16,6 +16,14 @@ export function useCourtsAPI() {
     const flattenResource = (resource: any): Court => ({
         id: resource.id,
         ...resource.attributes,
+        perks: resource.relationships?.perks?.data?.map((perk: any) => ({
+            id: perk.id,
+            ...perk.attributes,
+        })) || [],
+        hourly_rates: resource.relationships?.hourly_rates?.data?.map((rate: any) => ({
+            id: rate.id,
+            ...rate.attributes,
+        })) || [],
     });
 
     const fetchCourts = useCallback(async (params?: { branch_id?: number; page?: number; per_page?: number }) => {

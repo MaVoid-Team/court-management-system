@@ -1,6 +1,7 @@
 "use client";
 
 import { ThemeToggle } from "./theme-toggle";
+import { LanguageToggle } from "./language-toggle";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { UserActions } from "./user-actions";
@@ -21,6 +22,7 @@ export function Topbar() {
                 {/* Branch Selector would go here if needed in topbar */}
             </div>
 
+            <LanguageToggle />
             <ThemeToggle />
 
             <UserActions />

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { perkSchema } from "./perk.schema";
+import { hourlyRateSchema } from "./hourly-rate.schema";
 
 export const courtSchema = z.object({
     id: z.string(),
@@ -8,6 +10,8 @@ export const courtSchema = z.object({
     active: z.boolean(),
     created_at: z.string(),
     updated_at: z.string(),
+    perks: z.array(perkSchema).optional(),
+    hourly_rates: z.array(hourlyRateSchema).optional(),
 });
 
 export type Court = z.infer<typeof courtSchema>;

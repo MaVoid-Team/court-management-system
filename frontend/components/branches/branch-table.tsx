@@ -6,6 +6,9 @@ import { BranchFormDialog } from "./branch-form-dialog";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format-date";
+import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
+import { Percent } from "lucide-react";
 
 interface BranchTableProps {
     branches: Branch[];
@@ -46,6 +49,16 @@ export function BranchTable({ branches, isLoading, onUpdate, onDelete }: BranchT
             className: "text-right",
             cell: (b: Branch) => (
                 <div className="flex justify-end gap-2">
+                    <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                    >
+                        <Link href={`/branches/${b.id}/promo-codes`}>
+                            <Percent className="mr-2 h-4 w-4" />
+                            Promo Codes
+                        </Link>
+                    </Button>
                     <BranchFormDialog branch={b} onSubmit={(data) => onUpdate(b.id, data)} />
                     <ConfirmDialog
                         title="Delete Branch"

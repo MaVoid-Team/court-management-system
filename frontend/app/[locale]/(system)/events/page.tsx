@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useEventsAPI } from "@/hooks/api/use-events";
 import { useBranchesAPI } from "@/hooks/api/use-branches";
@@ -19,6 +20,8 @@ import {
 import { Label } from "@/components/ui/label";
 
 export default function EventsPage() {
+    const t = useTranslations("events.page");
+    const tToast = useTranslations("events.toasts");
     const [filterBranchId, setFilterBranchId] = useState<string>("all");
 
     const {
@@ -54,7 +57,7 @@ export default function EventsPage() {
     const handleCreate = async (data: EventFormData) => {
         const res = await createEvent(data);
         if (res.success) {
-            toast.success("Event created successfully");
+            toast.success(tToast("created"));
             loadData();
         }
         return res;
@@ -63,7 +66,7 @@ export default function EventsPage() {
     const handleUpdate = async (id: string, data: Partial<EventFormData>) => {
         const res = await updateEvent(id, data);
         if (res.success) {
-            toast.success("Event updated successfully");
+            toast.success(tToast("updated"));
             loadData();
         }
         return res;
@@ -72,7 +75,7 @@ export default function EventsPage() {
     const handleDelete = async (id: string) => {
         const res = await deleteEvent(id);
         if (res.success) {
-            toast.success("Event deleted successfully");
+            toast.success(tToast("deleted"));
             loadData();
         }
     };
@@ -81,23 +84,23 @@ export default function EventsPage() {
         <div className="space-y-6 animate-in fade-in-50 duration-500">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Events</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("title")}</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Manage your tournaments, gatherings, and special occasions.
+                        {t("subtitle")}
                     </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4">
                     <div className="flex items-center gap-2">
                         <Label htmlFor="branch-filter" className="text-sm text-muted-foreground whitespace-nowrap">
-                            Filter by Branch:
+                            {t("filterByBranch")}
                         </Label>
                         <Select value={filterBranchId} onValueChange={(v) => { setFilterBranchId(v); goToPage(1); }}>
                             <SelectTrigger id="branch-filter" className="w-[180px]" data-testid="event-branch-filter">
-                                <SelectValue placeholder="All Branches" />
+                                <SelectValue placeholder={t("allBranches")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Branches</SelectItem>
+                                <SelectItem value="all">{t("allBranches")}</SelectItem>
                                 {branches.map(b => (
                                     <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
                                 ))}

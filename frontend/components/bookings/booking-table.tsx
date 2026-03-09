@@ -79,6 +79,20 @@ export function BookingTable({ bookings, branches, courts, isLoading, onUpdatePa
             cell: (b: Booking) => <span className="font-semibold">{formatCurrency(b.total_price)}</span>,
         },
         {
+            header: "Notes",
+            cell: (b: Booking) => (
+                <div className="max-w-[200px]">
+                    {b.notes ? (
+                        <p className="text-sm text-muted-foreground truncate" title={b.notes}>
+                            {b.notes}
+                        </p>
+                    ) : (
+                        <p className="text-sm text-muted-foreground/50 italic">No notes</p>
+                    )}
+                </div>
+            ),
+        },
+        {
             header: "Status",
             cell: (b: Booking) => (
                 <div className="flex flex-col gap-1 items-start">

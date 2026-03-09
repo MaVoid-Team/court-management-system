@@ -7,6 +7,9 @@ import { CourtFormDialog } from "./court-form-dialog";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format-currency";
+import { Link } from "@/i18n/navigation";
+import { Button } from "@/components/ui/button";
+import { Star } from "lucide-react";
 
 interface CourtTableProps {
     courts: Court[];
@@ -30,7 +33,14 @@ export function CourtTable({ courts, branches, isLoading, onUpdate, onDelete }: 
         },
         {
             header: "Name",
-            accessorKey: "name" as keyof Court,
+            cell: (c: Court) => (
+                <Link 
+                    href={`/courts/${c.id}`}
+                    className="font-medium hover:text-primary transition-colors"
+                >
+                    {c.name}
+                </Link>
+            ),
             className: "font-medium",
         },
         {
@@ -46,15 +56,53 @@ export function CourtTable({ courts, branches, isLoading, onUpdate, onDelete }: 
             ),
         },
         {
+            header: "Perks",
+            cell: (c: Court) => {
+                const activePerks = c.perks?.filter(p => p.active) || [];
+                return (
+                    <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                            {activePerks.length} perks
+                        </Badge>
+                        {activePerks.length > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                                {activePerks.slice(0, 2).map(p => p.name).join(", ")}
+                                {activePerks.length > 2 && ` +${activePerks.length - 2} more`}
+                            </span>
+                        )}
+                    </div>
+                );
+            },
+        },
+        {
             header: "Actions",
             className: "text-right",
             cell: (c: Court) => (
                 <div className="flex justify-end gap-2">
-                    <CourtFormDialog court={c} branches={branches} onSubmit={(data) => onUpdate(c.id, data)} />
+                    <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                    >
+                        <Link href={`/courts/${c.id}`}>
+                            <Star className="mr-2 h-4 w-4" />
+                            Manage Perks
+                        </Link>
+                    </Button>
+                    <CourtFormDialog
+                        court={c}
+                        branches={branches}
+                        onSubmit={(data) => onUpdate(c.id, data)}
+                    />
                     <ConfirmDialog
                         title="Delete Court"
-                        description={`Are you sure you want to delete ${c.name}? This cannot be undone.`}
+                        description={`Are you sure you want to delete "${c.name}"? This action cannot be undone.`}
                         onConfirm={() => onDelete(c.id)}
+                        triggerButton={
+                            <Button variant="destructive" size="sm">
+                                Delete
+                            </Button>
+                        }
                     />
                 </div>
             ),

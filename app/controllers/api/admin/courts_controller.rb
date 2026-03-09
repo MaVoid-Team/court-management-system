@@ -2,7 +2,7 @@ module Api
   module Admin
     class CourtsController < BaseController
       def index
-        courts = policy_scope(Court).includes(:branch)
+        courts = policy_scope(Court).includes(:branch, :perks, :hourly_rates)
         courts = courts.where(branch_id: params[:branch_id]) if params[:branch_id].present?
         courts = courts.active_filter(params[:active]) if params[:active].present?
         courts = apply_sort(courts, { "name" => :name, "price_per_hour" => :price_per_hour }, { name: :asc })
@@ -12,7 +12,7 @@ module Api
       end
 
       def show
-        court = Court.find(params[:id])
+        court = Court.includes(:perks, :hourly_rates).find(params[:id])
         authorize court
         render json: CourtSerializer.new(court).serializable_hash, status: :ok
       end

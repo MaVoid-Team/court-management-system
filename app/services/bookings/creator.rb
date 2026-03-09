@@ -22,7 +22,20 @@ module Bookings
       return ServiceResult.failure("End time must be after start time") if end_time <= start_time
 
       hours = ((end_time - start_time) / 1.hour).ceil
-      total_price = hours * court.price_per_hour
+      total_price = court.calculate_price_for_period(start_time, end_time)
+      original_price = total_price
+      discount_amount = 0
+
+      # Handle promo code
+      promo_code = nil
+      if @params[:promo_code].present?
+        promo_code = @branch.promo_codes.valid_now.by_code(@params[:promo_code]).first
+        if promo_code&.applicable?(total_price)
+          discount_amount = promo_code.calculate_discount(total_price)
+          total_price -= discount_amount
+          total_price = 0 if total_price < 0 # Don't allow negative prices
+        end
+      end
 
       booking = nil
 
@@ -40,6 +53,7 @@ module Bookings
         booking = Booking.create!(
           branch: @branch,
           court: court,
+          promo_code: promo_code,
           user_name: @params[:user_name],
           user_phone: @params[:user_phone],
           date: date,
@@ -47,9 +61,16 @@ module Bookings
           end_time: end_time,
           hours: hours,
           total_price: total_price,
+          original_price: original_price,
+          discount_amount: discount_amount,
           status: :confirmed,
           payment_status: :pending
         )
+        
+        # Increment promo code usage if applied
+        if promo_code
+          promo_code.increment_usage!
+        end
       end
 
       return ServiceResult.failure("Time slot is not available") unless booking

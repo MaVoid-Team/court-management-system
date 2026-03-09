@@ -3,7 +3,10 @@ class BookingSerializer
 
   attributes :id, :branch_id, :court_id, :user_name, :user_phone,
              :date, :start_time, :end_time, :hours, :total_price,
-             :status, :payment_status, :created_at, :updated_at
+             :original_price, :discount_amount, :status, :payment_status, 
+             :notes, :promo_code_id, :created_at, :updated_at
+
+  has_one :promo_code
 
   attribute :start_time do |booking|
     booking.start_time&.strftime("%H:%M")

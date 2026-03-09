@@ -10,11 +10,14 @@ import { bookingFormSchema, BookingFormData, Booking } from "@/schemas/booking.s
 import { Court } from "@/schemas/court.schema";
 import { AvailabilityGrid } from "@/components/book/availability-grid";
 import { BookingConfirmation } from "@/components/book/booking-confirmation";
+import { CourtPerksDisplay } from "@/components/courts/court-perks-display";
+import { PromoCodeInput } from "@/components/book/promo-code-input";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -37,11 +40,14 @@ export function BookingView() {
         defaultValues: {
             branch_id: BRANCH_ID,
             court_id: undefined,
+            court_price: undefined,
             date: format(new Date(), "yyyy-MM-dd"),
             start_time: "",
             end_time: "",
             user_name: "",
             user_phone: "",
+            notes: "",
+            promo_code: "",
         },
     });
 
@@ -118,6 +124,8 @@ export function BookingView() {
                                                     field.onChange(courtId);
                                                     const court = courts.find(c => Number(c.id) === courtId);
                                                     setSelectedCourt(court || null);
+                                                    // Update court price in form
+                                                    form.setValue("court_price", court ? Number(court.price_per_hour) : undefined);
                                                 }}
                                                 value={field.value ? String(field.value) : undefined}
                                             >
@@ -129,7 +137,23 @@ export function BookingView() {
                                                 <SelectContent>
                                                     {courts.filter(c => c.active).map((court) => (
                                                         <SelectItem key={court.id} value={court.id}>
-                                                            {court.name} (${court.price_per_hour}/hr)
+                                                            <div className="flex flex-col">
+                                                                <span>{court.name} (${court.price_per_hour}/hr)</span>
+                                                                {court.perks && court.perks.length > 0 && (
+                                                                    <div className="flex gap-1 mt-1">
+                                                                        {court.perks.filter(p => p.active).slice(0, 2).map((perk) => (
+                                                                            <span key={perk.id} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                                                                                {perk.name}
+                                                                            </span>
+                                                                        ))}
+                                                                        {court.perks.filter(p => p.active).length > 2 && (
+                                                                            <span className="text-xs text-muted-foreground">
+                                                                                +{court.perks.filter(p => p.active).length - 2} more
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -140,6 +164,15 @@ export function BookingView() {
                                 />
                             </CardContent>
                         </Card>
+
+                        {/* Court Perks Display */}
+                        {selectedCourt && selectedCourt.perks && selectedCourt.perks.length > 0 && (
+                            <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                                <CardContent className="p-6">
+                                    <CourtPerksDisplay perks={selectedCourt.perks} />
+                                </CardContent>
+                            </Card>
+                        )}
 
                         <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                             <CardContent className="p-6">
@@ -243,6 +276,35 @@ export function BookingView() {
                                     )}
                                 />
                             </div>
+                            
+                            <FormField
+                                control={form.control}
+                                name="notes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Additional Notes (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Textarea 
+                                                placeholder="Any special requests or information you'd like to share with the court owner..."
+                                                className="min-h-[100px] resize-none"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                    </Card>
+
+                    {/* Step 5: Promo Code */}
+                    <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                        <CardContent className="p-6">
+                            <PromoCodeInput 
+                                selectedCourt={selectedCourt}
+                                startTime={selectedSlot?.start_time}
+                                endTime={selectedSlot?.end_time}
+                            />
                         </CardContent>
                     </Card>
 

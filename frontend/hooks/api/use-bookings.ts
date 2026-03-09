@@ -25,29 +25,36 @@ export function useBookingsAPI() {
         status?: string;
         page?: number;
         per_page?: number
-    }) => {
-        setLoading(true);
+    }, options?: { skipStateUpdate?: boolean }) => {
+        if (!options?.skipStateUpdate) {
+            setLoading(true);
+        }
         setError(null);
         try {
             const query = buildQueryString(params);
             const response = await api.get(`/api/admin/bookings${query}`);
 
-            if (response.data?.data) {
-                setBookings(response.data.data.map(flattenResource));
+            const fetchedBookings = response.data?.data ? response.data.data.map(flattenResource) : [];
+            
+            if (!options?.skipStateUpdate) {
+                setBookings(fetchedBookings);
+
+                const totalCount = Number(response.headers["x-total-count"] || 0);
+                const page = Number(response.headers["x-page"] || 1);
+                const perPage = Number(response.headers["x-per-page"] || 25);
+                const totalPages = Number(response.headers["x-total-pages"] || 1);
+
+                setPagination({ totalCount, page, perPage, totalPages });
             }
-
-            const totalCount = Number(response.headers["x-total-count"] || 0);
-            const page = Number(response.headers["x-page"] || 1);
-            const perPage = Number(response.headers["x-per-page"] || 25);
-            const totalPages = Number(response.headers["x-total-pages"] || 1);
-
-            setPagination({ totalCount, page, perPage, totalPages });
-            return { success: true };
+            
+            return { success: true, data: fetchedBookings };
         } catch (err: any) {
             setError(err.response?.data?.error || "Failed to fetch bookings");
             return { success: false, error: err };
         } finally {
-            setLoading(false);
+            if (!options?.skipStateUpdate) {
+                setLoading(false);
+            }
         }
     }, []);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Admin, adminFormSchema, AdminFormData, AdminUpdateData, adminUpdateSchema } from "@/schemas/admin.schema";
@@ -33,6 +34,7 @@ interface AdminFormDialogProps {
 }
 
 export function AdminFormDialog({ admin, branches = [], onSubmit }: AdminFormDialogProps) {
+    const t = useTranslations("admins");
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const isEdit = !!admin;
@@ -98,17 +100,17 @@ export function AdminFormDialog({ admin, branches = [], onSubmit }: AdminFormDia
                 ) : (
                     <Button data-testid="create-admin-btn">
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Admin
+                        {t("form.addButtonLabel")}
                     </Button>
                 )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{isEdit ? "Edit Admin Role" : "Add Administrator"}</DialogTitle>
+                    <DialogTitle>{isEdit ? t("form.editTitle") : t("form.createTitle")}</DialogTitle>
                     <DialogDescription>
                         {isEdit
-                            ? "Update administrator permissions."
-                            : "Invite a new admin to manage the system or a specific branch."}
+                            ? t("form.editDesc")
+                            : t("form.createDesc")}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="admin-form" noValidate>
@@ -116,7 +118,7 @@ export function AdminFormDialog({ admin, branches = [], onSubmit }: AdminFormDia
                     {!isEdit && (
                         <>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">{t("form.emailLabel")}</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -130,7 +132,7 @@ export function AdminFormDialog({ admin, branches = [], onSubmit }: AdminFormDia
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="password">Initial Password</Label>
+                                <Label htmlFor="password">{t("form.passwordLabel")}</Label>
                                 <Input
                                     id="password"
                                     type="password"
@@ -146,18 +148,18 @@ export function AdminFormDialog({ admin, branches = [], onSubmit }: AdminFormDia
                     )}
 
                     <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
+                        <Label htmlFor="role">{t("form.roleLabel")}</Label>
                         <Select
                             disabled={loading}
                             value={form.watch("role")}
                             onValueChange={(val) => form.setValue("role", val as "super_admin" | "branch_admin")}
                         >
                             <SelectTrigger id="role" data-testid="admin-role-select">
-                                <SelectValue placeholder="Select role" />
+                                <SelectValue placeholder={t("form.selectRole")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="branch_admin">Branch Admin</SelectItem>
-                                <SelectItem value="super_admin" className="font-semibold text-primary">Super Admin</SelectItem>
+                                <SelectItem value="branch_admin">{t("form.roleOptions.branchAdmin")}</SelectItem>
+                                <SelectItem value="super_admin" className="font-semibold text-primary">{t("form.roleOptions.superAdmin")}</SelectItem>
                             </SelectContent>
                         </Select>
                         {form.formState.errors.role && (
@@ -167,14 +169,14 @@ export function AdminFormDialog({ admin, branches = [], onSubmit }: AdminFormDia
 
                     {roleWatch === "branch_admin" && (
                         <div className="space-y-2 pb-2">
-                            <Label htmlFor="branch_id">Assigned Branch</Label>
+                            <Label htmlFor="branch_id">{t("form.branchLabel")}</Label>
                             <Select
                                 disabled={loading}
                                 value={form.watch("branch_id") ? String(form.watch("branch_id")) : ""}
                                 onValueChange={(val) => form.setValue("branch_id", Number(val))}
                             >
                                 <SelectTrigger id="branch_id" data-testid="admin-branch-select">
-                                    <SelectValue placeholder="Assign a branch" />
+                                    <SelectValue placeholder={t("form.selectBranch")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {branches.map((b) => (
@@ -192,10 +194,10 @@ export function AdminFormDialog({ admin, branches = [], onSubmit }: AdminFormDia
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-                            Cancel
+                            {t("form.cancelButton")}
                         </Button>
                         <Button type="submit" disabled={loading} data-testid="admin-submit-btn">
-                            {loading ? "Saving..." : "Save"}
+                            {loading ? t("form.savingButton") : t("form.saveButton")}
                         </Button>
                     </DialogFooter>
                 </form>
