@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useBlockedSlotsAPI } from "@/hooks/api/use-blocked-slots";
 import { useBranchesAPI } from "@/hooks/api/use-branches";
@@ -12,6 +13,8 @@ import { PaginationControls } from "@/components/shared/pagination-controls";
 import { BlockedSlotFormData } from "@/schemas/blocked-slot.schema";
 
 export default function BlockedSlotsPage() {
+    const t = useTranslations("blockedSlots.page");
+    const tToast = useTranslations("blockedSlots.toasts");
     const {
         blockedSlots,
         pagination: meta,
@@ -44,7 +47,7 @@ export default function BlockedSlotsPage() {
     const handleCreate = async (data: BlockedSlotFormData) => {
         const res = await createBlockedSlot(data);
         if (res.success) {
-            toast.success("Dates blocked successfully");
+            toast.success(tToast("created"));
             loadData();
         }
         return res;
@@ -53,7 +56,7 @@ export default function BlockedSlotsPage() {
     const handleUpdate = async (id: string, data: Partial<BlockedSlotFormData>) => {
         const res = await updateBlockedSlot(id, data);
         if (res.success) {
-            toast.success("Blocked slot updated successfully");
+            toast.success(tToast("updated"));
             loadData();
         }
         return res;
@@ -62,7 +65,7 @@ export default function BlockedSlotsPage() {
     const handleDelete = async (id: string) => {
         const res = await deleteBlockedSlot(id);
         if (res.success) {
-            toast.success("Dates unblocked successfully");
+            toast.success(tToast("deleted"));
             loadData();
         }
     };
@@ -71,9 +74,9 @@ export default function BlockedSlotsPage() {
         <div className="space-y-6 animate-in fade-in-50 duration-500">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Blocked Slots</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("title")}</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Prevent reservations for maintenance or private events.
+                        {t("subtitle")}
                     </p>
                 </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Branch } from "@/schemas/branch.schema";
 import { DataTable } from "@/components/shared/data-table";
 import { BranchFormDialog } from "./branch-form-dialog";
@@ -18,34 +19,35 @@ interface BranchTableProps {
 }
 
 export function BranchTable({ branches, isLoading, onUpdate, onDelete }: BranchTableProps) {
+    const t = useTranslations("branches.table");
     const columns = [
         {
-            header: "Name",
+            header: t("nameHeader"),
             accessorKey: "name" as keyof Branch,
             className: "font-medium",
         },
         {
-            header: "Address",
+            header: t("addressHeader"),
             accessorKey: "address" as keyof Branch,
         },
         {
-            header: "Timezone",
+            header: t("timezoneHeader"),
             accessorKey: "timezone" as keyof Branch,
         },
         {
-            header: "Status",
+            header: t("statusHeader"),
             cell: (b: Branch) => (
                 <Badge variant={b.active ? "default" : "secondary"}>
-                    {b.active ? "Active" : "Inactive"}
+                    {b.active ? t("active") : t("inactive")}
                 </Badge>
             ),
         },
         {
-            header: "Created At",
+            header: t("createdAtHeader"),
             cell: (b: Branch) => formatDate(b.created_at),
         },
         {
-            header: "Actions",
+            header: t("actionsHeader"),
             className: "text-right",
             cell: (b: Branch) => (
                 <div className="flex justify-end gap-2">
@@ -54,15 +56,15 @@ export function BranchTable({ branches, isLoading, onUpdate, onDelete }: BranchT
                         variant="outline"
                         size="sm"
                     >
-                        <Link href={`/branches/${b.id}/promo-codes`}>
+                        <Link href={`/promo-codes?branch_id=${b.id}`}>
                             <Percent className="mr-2 h-4 w-4" />
-                            Promo Codes
+                            {t("promoCodes")}
                         </Link>
                     </Button>
                     <BranchFormDialog branch={b} onSubmit={(data) => onUpdate(b.id, data)} />
                     <ConfirmDialog
-                        title="Delete Branch"
-                        description={`Are you sure you want to delete ${b.name}? This will affect all courts and bookings in this branch.`}
+                        title={t("deleteTitle")}
+                        description={t("deleteDescription", { name: b.name })}
                         onConfirm={() => onDelete(b.id)}
                     />
                 </div>
@@ -75,8 +77,8 @@ export function BranchTable({ branches, isLoading, onUpdate, onDelete }: BranchT
             columns={columns}
             data={branches}
             isLoading={isLoading}
-            emptyStateTitle="No branches found"
-            emptyStateDescription="Add a new branch using the button above."
+            emptyStateTitle={t("emptyTitle")}
+            emptyStateDescription={t("emptyDescription")}
         />
     );
 }

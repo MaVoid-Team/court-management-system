@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useSettingsAPI } from "@/hooks/api/use-settings";
 import { useBranchesAPI } from "@/hooks/api/use-branches";
@@ -9,6 +10,7 @@ import { SettingFormData } from "@/schemas/setting.schema";
 import { useAuthContext } from "@/contexts/auth-context";
 
 export default function SettingsPage() {
+    const t = useTranslations("settings");
     const { admin } = useAuthContext();
     const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
 
@@ -46,7 +48,7 @@ export default function SettingsPage() {
         }
 
         if (res.success) {
-            toast.success("Settings saved successfully.");
+            toast.success(t("page.savedSuccessfully"));
             if (selectedBranchId !== "all") {
                 fetchSettings({ branch_id: Number(selectedBranchId) });
             } else {
@@ -59,9 +61,9 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6 animate-in fade-in-50 duration-500">
             <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">General Settings</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("page.title")}</h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                    Configure operating hours and communication channels.
+                    {t("page.subtitle")}
                 </p>
             </div>
 

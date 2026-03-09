@@ -7,10 +7,12 @@ import { animate, createScope } from "animejs";
 import { cn } from "@/lib/utils";
 import { UserActions } from "@/components/shared/user-actions";
 import { LanguageToggle } from "@/components/landing/language-toggle";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Menu, X } from "lucide-react";
 
 export function LandingNavbar() {
   const t = useTranslations("landing.nav");
+  const tCommon = useTranslations("common");
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -128,9 +130,12 @@ export function LandingNavbar() {
           ))}
         </nav>
 
-        {/* Right side: Language Toggle + CTA + mobile toggle */}
+        {/* Right side: Language Toggle + Theme Toggle + CTA + mobile toggle */}
         <div className="flex items-center gap-3">
           <LanguageToggle className="nav-cta opacity-0" />
+          <div className="nav-cta opacity-0">
+            <ThemeToggle />
+          </div>
           <div className="nav-cta opacity-0">
             <UserActions showDashboardLink />
           </div>
@@ -138,7 +143,7 @@ export function LandingNavbar() {
           <button
             className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors duration-200"
             onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Toggle menu"
+            aria-label={tCommon("toggleMenu")}
             id="mobile-menu-toggle"
           >
             {mobileOpen ? (
@@ -176,11 +181,14 @@ export function LandingNavbar() {
             </Link>
           ))}
           {/* Language toggle in mobile menu */}
-          <div className="pt-3 mt-1 border-t border-border/40 flex items-center gap-2">
-            <span className="text-xs text-muted-foreground font-medium">
-              Language
-            </span>
-            <LanguageToggle />
+          <div className="pt-3 mt-1 border-t border-border/40 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground font-medium">
+                {tCommon("language")}
+              </span>
+              <LanguageToggle />
+            </div>
+            <ThemeToggle />
           </div>
         </nav>
       </div>

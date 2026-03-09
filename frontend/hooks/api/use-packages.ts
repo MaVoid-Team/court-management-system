@@ -47,17 +47,22 @@ export function usePackagesAPI() {
     const fetchPublicPackages = useCallback(async (params?: { branch_id?: number; page?: number; per_page?: number }) => {
         setLoading(true);
         setError(null);
+        console.log('usePackagesAPI - fetchPublicPackages called with params:', params);
         try {
             const query = buildQueryString(params);
             const response = await api.get(`/api/packages${query}`);
+            console.log('usePackagesAPI - response:', response);
 
             if (response.data?.data) {
-                setPackages(response.data.data.map(flattenResource));
+                const packages = response.data.data.map(flattenResource);
+                console.log('usePackagesAPI - flattened packages:', packages);
+                setPackages(packages);
             }
 
             setPagination(null); // Optional: add pagination parsing if needed
             return { success: true };
         } catch (err: any) {
+            console.error('usePackagesAPI - error:', err);
             setError(err.response?.data?.error || "Failed to fetch packages");
             return { success: false, error: err };
         } finally {

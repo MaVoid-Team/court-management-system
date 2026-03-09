@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useCourtsAPI } from "@/hooks/api/use-courts";
 import { useBranchesAPI } from "@/hooks/api/use-branches";
@@ -19,6 +20,7 @@ import {
 import { Label } from "@/components/ui/label";
 
 export default function CourtsPage() {
+    const t = useTranslations("courts");
     const [filterBranchId, setFilterBranchId] = useState<string>("all");
 
     const {
@@ -54,7 +56,7 @@ export default function CourtsPage() {
     const handleCreate = async (data: CourtFormData) => {
         const res = await createCourt(data);
         if (res.success) {
-            toast.success("Court created successfully");
+            toast.success(t("toasts.created"));
             loadData();
         }
         return res;
@@ -63,7 +65,7 @@ export default function CourtsPage() {
     const handleUpdate = async (id: string, data: Partial<CourtFormData>) => {
         const res = await updateCourt(id, data);
         if (res.success) {
-            toast.success("Court updated successfully");
+            toast.success(t("toasts.updated"));
             loadData();
         }
         return res;
@@ -72,7 +74,7 @@ export default function CourtsPage() {
     const handleDelete = async (id: string) => {
         const res = await deleteCourt(id);
         if (res.success) {
-            toast.success("Court deleted successfully");
+            toast.success(t("toasts.deleted"));
             loadData();
         }
     };
@@ -81,23 +83,23 @@ export default function CourtsPage() {
         <div className="space-y-6 animate-in fade-in-50 duration-500">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Courts</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("page.title")}</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Manage your individual courts and pricing.
+                        {t("page.subtitle")}
                     </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4">
                     <div className="flex items-center gap-2">
                         <Label htmlFor="branch-filter" className="text-sm text-muted-foreground whitespace-nowrap">
-                            Filter by Branch:
+                            {t("page.filterByBranch")}
                         </Label>
                         <Select value={filterBranchId} onValueChange={(v) => { setFilterBranchId(v); goToPage(1); }}>
                             <SelectTrigger id="branch-filter" className="w-[180px]" data-testid="branch-filter-select">
-                                <SelectValue placeholder="All Branches" />
+                                <SelectValue placeholder={t("page.allBranches")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Branches</SelectItem>
+                                <SelectItem value="all">{t("page.allBranches")}</SelectItem>
                                 {branches.map(b => (
                                     <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
                                 ))}

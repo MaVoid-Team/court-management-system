@@ -41,7 +41,7 @@ export function DataTable<T extends { id: string | number }>({
     }
 
     return (
-        <div className="rounded-md border border-border overflow-hidden">
+        <div className="rounded-md border border-border overflow-hidden" dir="ltr">
             <Table data-testid="data-table">
                 <TableHeader className="bg-muted">
                     <TableRow className="hover:bg-transparent">

@@ -39,7 +39,8 @@ module Api
         params.require(:setting).permit(
           :branch_id, :whatsapp_number,
           :contact_email, :contact_phone,
-          :opening_hour, :closing_hour
+          :opening_hour, :closing_hour,
+          :booking_terms
         )
       end
     end

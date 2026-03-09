@@ -16,6 +16,7 @@ import { useHourlyRatesAPI } from "@/hooks/api/use-hourly-rates";
 import { HourlyRate, HourlyRateFormData, hourlyRateFormSchema } from "@/schemas/hourly-rate.schema";
 import { formatCurrency } from "@/lib/format-currency";
 import { Edit, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface CourtHourlyRatesProps {
     courtId: string;
@@ -23,6 +24,7 @@ interface CourtHourlyRatesProps {
 }
 
 export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRatesProps) {
+    const t = useTranslations("courts.hourlyRates");
     const { loading, fetchHourlyRates, createHourlyRate, updateHourlyRate, deleteHourlyRate } = useHourlyRatesAPI();
     const [rates, setRates] = useState<HourlyRate[]>([]);
     const [open, setOpen] = useState(false);
@@ -88,11 +90,11 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
             : await createHourlyRate(courtId, values);
 
         if (!res.success) {
-            toast.error("Failed to save pricing range");
+            toast.error(t("toasts.saveFailed"));
             return;
         }
 
-        toast.success(editing ? "Pricing range updated" : "Pricing range created");
+        toast.success(editing ? t("toasts.updated") : t("toasts.created"));
         setOpen(false);
         await loadRates();
     };
@@ -100,10 +102,10 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
     const handleDelete = async (id: string) => {
         const res = await deleteHourlyRate(courtId, id);
         if (!res.success) {
-            toast.error("Failed to delete pricing range");
+            toast.error(t("toasts.deleteFailed"));
             return;
         }
-        toast.success("Pricing range deleted");
+        toast.success(t("toasts.deleted"));
         await loadRates();
     };
 
@@ -111,9 +113,9 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Hourly Price Ranges</CardTitle>
+                    <CardTitle>{t("title")}</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Default fallback price: {formatCurrency(basePricePerHour)} per hour.
+                        {t("defaultFallbackPrice", { price: formatCurrency(basePricePerHour) })}
                     </p>
                 </div>
 
@@ -121,14 +123,14 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
                     <DialogTrigger asChild>
                         <Button onClick={openCreateDialog}>
                             <Plus className="h-4 w-4 mr-2" />
-                            Add Range
+                            {t("addRange")}
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>{editing ? "Edit Price Range" : "Add Price Range"}</DialogTitle>
+                            <DialogTitle>{editing ? t("editTitle") : t("createTitle")}</DialogTitle>
                             <DialogDescription>
-                                Set a custom price for a specific hourly range.
+                                {t("description")}
                             </DialogDescription>
                         </DialogHeader>
 
@@ -140,7 +142,7 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
                                         name="start_hour"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Start Hour</FormLabel>
+                                                <FormLabel>{t("startHour")}</FormLabel>
                                                 <FormControl>
                                                     <Input type="number" min={0} max={23} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
                                                 </FormControl>
@@ -154,7 +156,7 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
                                         name="end_hour"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>End Hour</FormLabel>
+                                                <FormLabel>{t("endHour")}</FormLabel>
                                                 <FormControl>
                                                     <Input type="number" min={1} max={24} {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
                                                 </FormControl>
@@ -169,7 +171,7 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
                                     name="price_per_hour"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Price Per Hour</FormLabel>
+                                            <FormLabel>{t("pricePerHour")}</FormLabel>
                                             <FormControl>
                                                 <Input type="number" min={0} step="0.01" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
                                             </FormControl>
@@ -183,7 +185,7 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
                                     name="active"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border p-3">
-                                            <FormLabel>Active</FormLabel>
+                                            <FormLabel>{t("active")}</FormLabel>
                                             <FormControl>
                                                 <Switch checked={field.value} onCheckedChange={field.onChange} />
                                             </FormControl>
@@ -193,10 +195,10 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
 
                                 <DialogFooter>
                                     <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                                        Cancel
+                                        {t("cancel")}
                                     </Button>
                                     <Button type="submit" disabled={loading}>
-                                        {loading ? "Saving..." : "Save"}
+                                        {loading ? t("saving") : t("save")}
                                     </Button>
                                 </DialogFooter>
                             </form>
@@ -208,7 +210,7 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
             <CardContent>
                 {sortedRates.length === 0 ? (
                     <div className="text-sm text-muted-foreground">
-                        No custom ranges configured. All bookings currently use the base price.
+                        {t("empty")}
                     </div>
                 ) : (
                     <div className="space-y-3">
@@ -219,20 +221,23 @@ export function CourtHourlyRates({ courtId, basePricePerHour }: CourtHourlyRates
                                         {toHourLabel(rate.start_hour)} - {toHourLabel(rate.end_hour)}
                                     </div>
                                     <div className="text-sm text-muted-foreground">
-                                        {formatCurrency(rate.price_per_hour)} / hour
+                                        {t("perHour", { price: formatCurrency(rate.price_per_hour) })}
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-2">
                                     <Badge variant={rate.active ? "default" : "secondary"}>
-                                        {rate.active ? "Active" : "Inactive"}
+                                        {rate.active ? t("statusActive") : t("statusInactive")}
                                     </Badge>
                                     <Button variant="ghost" size="icon" onClick={() => openEditDialog(rate)}>
                                         <Edit className="h-4 w-4" />
                                     </Button>
                                     <ConfirmDialog
-                                        title="Delete pricing range"
-                                        description={`Delete range ${toHourLabel(rate.start_hour)}-${toHourLabel(rate.end_hour)}?`}
+                                        title={t("deleteTitle")}
+                                        description={t("deleteDescription", {
+                                            start: toHourLabel(rate.start_hour),
+                                            end: toHourLabel(rate.end_hour),
+                                        })}
                                         onConfirm={() => handleDelete(rate.id)}
                                     />
                                 </div>

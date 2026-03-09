@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Package, packageFormSchema, PackageFormData } from "@/schemas/package.schema";
@@ -34,6 +35,7 @@ interface PackageFormDialogProps {
 }
 
 export function PackageFormDialog({ packageItem, branches = [], onSubmit }: PackageFormDialogProps) {
+    const t = useTranslations("packages");
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const isEdit = !!packageItem;
@@ -87,32 +89,32 @@ export function PackageFormDialog({ packageItem, branches = [], onSubmit }: Pack
                 ) : (
                     <Button data-testid="create-package-btn">
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Package
+                        {t("form.addButton")}
                     </Button>
                 )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>{isEdit ? "Edit Package" : "Add Package"}</DialogTitle>
+                    <DialogTitle>{isEdit ? t("form.editTitle") : t("form.createTitle")}</DialogTitle>
                     <DialogDescription>
                         {isEdit
-                            ? "Update package details."
-                            : "Create a new booking package. Can be global or branch specific."}
+                            ? t("form.editDescription")
+                            : t("form.createDescription")}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="package-form" noValidate>
                     <div className="space-y-2">
-                        <Label htmlFor="branch_id">Branch (Optional)</Label>
+                        <Label htmlFor="branch_id">{t("form.branchLabel")}</Label>
                         <Select
                             disabled={loading}
                             value={form.watch("branch_id") ? String(form.watch("branch_id")) : "global"}
                             onValueChange={(val) => form.setValue("branch_id", val === "global" ? null : Number(val))}
                         >
                             <SelectTrigger id="branch_id" data-testid="package-branch-select">
-                                <SelectValue placeholder="Global (All Branches)" />
+                                <SelectValue placeholder={t("form.branchPlaceholder")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="global" className="font-semibold text-primary">Global (All Branches)</SelectItem>
+                                <SelectItem value="global" className="font-semibold text-primary">{t("form.branchOption")}</SelectItem>
                                 {branches.map((b) => (
                                     <SelectItem key={b.id} value={b.id.toString()}>
                                         {b.name}
@@ -120,14 +122,14 @@ export function PackageFormDialog({ packageItem, branches = [], onSubmit }: Pack
                                 ))}
                             </SelectContent>
                         </Select>
-                        <p className="text-xs text-muted-foreground mr-1">Leave as Global if this applies to all branches.</p>
+                        <p className="text-xs text-muted-foreground mr-1">{t("form.branchHelp")}</p>
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="title">Title</Label>
+                        <Label htmlFor="title">{t("form.titleLabel")}</Label>
                         <Input
                             id="title"
-                            placeholder="e.g. 10-Hour Pro Package"
+                            placeholder={t("form.titlePlaceholder")}
                             {...form.register("title")}
                             disabled={loading}
                             data-testid="package-title-input"
@@ -138,7 +140,7 @@ export function PackageFormDialog({ packageItem, branches = [], onSubmit }: Pack
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="price">Price (EGP)</Label>
+                        <Label htmlFor="price">{t("form.priceLabel")}</Label>
                         <Input
                             id="price"
                             type="number"
@@ -154,10 +156,10 @@ export function PackageFormDialog({ packageItem, branches = [], onSubmit }: Pack
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description">{t("form.descriptionLabel")}</Label>
                         <Textarea
                             id="description"
-                            placeholder="Package details and benefits..."
+                            placeholder={t("form.descriptionPlaceholder")}
                             {...form.register("description")}
                             disabled={loading}
                             data-testid="package-desc-input"
@@ -167,10 +169,10 @@ export function PackageFormDialog({ packageItem, branches = [], onSubmit }: Pack
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-                            Cancel
+                            {t("form.cancel")}
                         </Button>
                         <Button type="submit" disabled={loading} data-testid="package-submit-btn">
-                            {loading ? "Saving..." : "Save"}
+                            {loading ? t("form.saving") : t("form.save")}
                         </Button>
                     </DialogFooter>
                 </form>

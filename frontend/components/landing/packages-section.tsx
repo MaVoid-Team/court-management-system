@@ -18,10 +18,26 @@ export function PackagesSection() {
   const root = useRef<HTMLElement>(null);
   const scope = useRef<ReturnType<typeof createScope> | null>(null);
   const animated = useRef(false);
+  const hasFetched = useRef(false);
+  const hasTriedFallback = useRef(false);
 
   useEffect(() => {
-    fetchPublicPackages({ branch_id: getDefaultBranchId() });
+    if (!hasFetched.current) {
+      const branchId = getDefaultBranchId();
+      console.log('Packages section - fetching with branch_id:', branchId);
+      fetchPublicPackages({ branch_id: branchId });
+      hasFetched.current = true;
+    }
   }, [fetchPublicPackages]);
+
+  // Fallback: if no packages found for default branch, try fetching all packages
+  useEffect(() => {
+    if (!loading && !error && packages.length === 0 && hasFetched.current && !hasTriedFallback.current) {
+      console.log('No packages found for default branch, trying to fetch all packages...');
+      fetchPublicPackages({}); // No branch_id filter
+      hasTriedFallback.current = true;
+    }
+  }, [loading, error, packages.length, fetchPublicPackages]);
 
   useEffect(() => {
     if (loading) return;
@@ -115,11 +131,16 @@ export function PackagesSection() {
             <p className="text-destructive font-medium mb-2">
               {t("failedToLoad")}
             </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Error: {error}
+            </p>
             <Button
               variant="outline"
-              onClick={() =>
-                fetchPublicPackages({ branch_id: getDefaultBranchId() })
-              }
+              onClick={() => {
+                const branchId = getDefaultBranchId();
+                console.log('Retrying packages fetch with branch_id:', branchId);
+                fetchPublicPackages({ branch_id: branchId });
+              }}
             >
               {t("tryAgain")}
             </Button>
@@ -127,7 +148,10 @@ export function PackagesSection() {
         ) : packages.length === 0 ? (
           <div className="p-12 border border-border/50 bg-card rounded-2xl text-center">
             <PackageIcon className="mx-auto h-10 w-10 text-muted-foreground mb-4 opacity-40" />
-            <p className="text-muted-foreground text-lg">{t("noPackages")}</p>
+            <p className="text-muted-foreground text-lg mb-2">{t("noPackages")}</p>
+            <p className="text-sm text-muted-foreground">
+              Debug: branch_id = {getDefaultBranchId()}, loading = {loading}, error = {error}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

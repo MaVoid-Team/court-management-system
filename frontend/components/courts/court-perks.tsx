@@ -15,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Plus, Edit, Trash2, Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface CourtPerksProps {
     courtId: string;
@@ -22,6 +23,7 @@ interface CourtPerksProps {
 }
 
 export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
+    const t = useTranslations("courts.perks");
     const { fetchPerks, createPerk, updatePerk, deletePerk, loading } = usePerksAPI();
     const [perks, setPerks] = useState<Perk[]>([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -50,7 +52,7 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
                 })));
             }
         } catch (error) {
-            console.error("Failed to load perks:", error);
+            console.error(t("errors.loadFailed"), error);
         }
     };
 
@@ -66,7 +68,7 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
             setEditingPerk(null);
             form.reset();
         } catch (error) {
-            console.error("Failed to save perk:", error);
+            console.error(t("errors.saveFailed"), error);
         }
     };
 
@@ -85,7 +87,7 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
             await deletePerk(courtId, perkId);
             await loadPerks();
         } catch (error) {
-            console.error("Failed to delete perk:", error);
+            console.error(t("errors.deleteFailed"), error);
         }
     };
 
@@ -103,22 +105,22 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h3 className="text-lg font-semibold">Court Perks</h3>
+                    <h3 className="text-lg font-semibold">{t("title")}</h3>
                     <p className="text-sm text-muted-foreground">
-                        Manage special amenities and features for {courtName}
+                        {t("subtitle", { courtName })}
                     </p>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button onClick={openDialog}>
                             <Plus className="mr-2 h-4 w-4" />
-                            Add Perk
+                            {t("addPerk")}
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>
-                                {editingPerk ? "Edit Perk" : "Add New Perk"}
+                                {editingPerk ? t("editTitle") : t("createTitle")}
                             </DialogTitle>
                         </DialogHeader>
                         <Form {...form}>
@@ -128,9 +130,9 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
                                     name="name"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Perk Name</FormLabel>
+                                            <FormLabel>{t("nameLabel")}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="e.g., Free Water, WiFi, Parking" {...field} />
+                                                <Input placeholder={t("namePlaceholder")} {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -141,10 +143,10 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
                                     name="description"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Description (Optional)</FormLabel>
+                                            <FormLabel>{t("descriptionLabel")}</FormLabel>
                                             <FormControl>
                                                 <Textarea
-                                                    placeholder="Additional details about this perk..."
+                                                    placeholder={t("descriptionPlaceholder")}
                                                     {...field}
                                                 />
                                             </FormControl>
@@ -158,9 +160,9 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
                                     render={({ field }) => (
                                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                                             <div className="space-y-0.5">
-                                                <FormLabel>Active</FormLabel>
+                                                <FormLabel>{t("activeLabel")}</FormLabel>
                                                 <p className="text-sm text-muted-foreground">
-                                                    Show this perk to customers
+                                                    {t("activeHelp")}
                                                 </p>
                                             </div>
                                             <FormControl>
@@ -178,10 +180,10 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
                                         variant="outline"
                                         onClick={() => setIsDialogOpen(false)}
                                     >
-                                        Cancel
+                                        {t("cancel")}
                                     </Button>
                                     <Button type="submit" disabled={loading}>
-                                        {loading ? "Saving..." : editingPerk ? "Update" : "Create"}
+                                        {loading ? t("saving") : editingPerk ? t("update") : t("create")}
                                     </Button>
                                 </div>
                             </form>
@@ -194,13 +196,13 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
                 <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
                         <Star className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No perks yet</h3>
+                        <h3 className="text-lg font-semibold mb-2">{t("emptyTitle")}</h3>
                         <p className="text-muted-foreground text-center mb-4">
-                            Add perks to highlight special amenities and features of this court.
+                            {t("emptyDescription")}
                         </p>
                         <Button onClick={openDialog}>
                             <Plus className="mr-2 h-4 w-4" />
-                            Add First Perk
+                            {t("addFirstPerk")}
                         </Button>
                     </CardContent>
                 </Card>
@@ -217,7 +219,7 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
                                         <div className="flex items-center gap-2 mb-1">
                                             <h4 className="font-medium">{perk.name}</h4>
                                             <Badge variant={perk.active ? "default" : "secondary"}>
-                                                {perk.active ? "Active" : "Inactive"}
+                                                {perk.active ? t("statusActive") : t("statusInactive")}
                                             </Badge>
                                         </div>
                                         {perk.description && (
@@ -235,8 +237,8 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
                                             <Edit className="h-4 w-4" />
                                         </Button>
                                         <ConfirmDialog
-                                            title="Delete Perk"
-                                            description={`Are you sure you want to delete "${perk.name}"?`}
+                                            title={t("deleteTitle")}
+                                            description={t("deleteDescription", { name: perk.name })}
                                             onConfirm={() => handleDelete(perk.id)}
                                             triggerButton={
                                                 <Button variant="ghost" size="icon" className="text-destructive">

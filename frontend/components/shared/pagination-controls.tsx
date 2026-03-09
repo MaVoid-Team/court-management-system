@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { PaginationMeta } from "@/schemas/api.schema";
 import {
@@ -22,18 +23,22 @@ export function PaginationControls({
     onPageChange,
     onPerPageChange,
 }: PaginationControlsProps) {
+    const t = useTranslations("pagination");
     const { page, totalPages, totalCount, perPage } = pagination;
 
     return (
         <div className="flex items-center justify-between px-2 py-4 border-t border-border mt-4">
             <div className="flex-1 text-sm text-muted-foreground">
-                Showing {Math.min((page - 1) * perPage + 1, totalCount)} to{" "}
-                {Math.min(page * perPage, totalCount)} of {totalCount} entries
+                {t("showing", {
+                    from: Math.min((page - 1) * perPage + 1, totalCount),
+                    to: Math.min(page * perPage, totalCount),
+                    total: totalCount,
+                })}
             </div>
             <div className="flex items-center space-x-6 lg:space-x-8">
                 {onPerPageChange && (
                     <div className="flex items-center space-x-2">
-                        <p className="text-sm font-medium text-foreground">Rows per page</p>
+                        <p className="text-sm font-medium text-foreground">{t("rowsPerPage")}</p>
                         <Select
                             value={`${perPage}`}
                             onValueChange={(value) => onPerPageChange(Number(value))}
@@ -56,7 +61,7 @@ export function PaginationControls({
                     </div>
                 )}
                 <div className="flex flex-col min-w-[100px] items-center justify-center text-sm font-medium text-foreground">
-                    Page {page} of {totalPages || 1}
+                    {t("pageOf", { page, total: totalPages || 1 })}
                 </div>
                 <div className="flex items-center space-x-2">
                     <Button
@@ -66,7 +71,7 @@ export function PaginationControls({
                         disabled={page <= 1}
                         id="prev-page"
                         data-testid="prev-page"
-                        aria-label="Go to previous page"
+                        aria-label={t("previousPage")}
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -77,7 +82,7 @@ export function PaginationControls({
                         disabled={page >= totalPages}
                         id="next-page"
                         data-testid="next-page"
-                        aria-label="Go to next page"
+                        aria-label={t("nextPage")}
                     >
                         <ChevronRight className="h-4 w-4" />
                     </Button>

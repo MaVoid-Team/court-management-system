@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useCourtsAPI } from "@/hooks/api/use-courts";
 import { useBranchesAPI } from "@/hooks/api/use-branches";
@@ -16,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format-currency";
 
 export default function CourtDetailPage() {
+    const t = useTranslations("courts");
     const params = useParams();
     const router = useRouter();
     const courtId = params.id as string;
@@ -39,7 +41,7 @@ export default function CourtDetailPage() {
             }
         } catch (error) {
             console.error("Failed to load court:", error);
-            toast.error("Failed to load court");
+            toast.error(t("toasts.loadFailed"));
         } finally {
             setLoading(false);
         }
@@ -48,7 +50,7 @@ export default function CourtDetailPage() {
     const handleUpdate = async (id: string, data: Partial<CourtFormData>) => {
         const res = await updateCourt(id, data);
         if (res.success) {
-            toast.success("Court updated successfully");
+            toast.success(t("toasts.updated"));
             await loadCourt();
         }
         return res;
@@ -56,7 +58,7 @@ export default function CourtDetailPage() {
 
     const getBranchName = (branchId: number) => {
         const branch = branches.find(b => Number(b.id) === branchId);
-        return branch ? branch.name : "Unknown Branch";
+        return branch ? branch.name : t("table.unknownBranch");
     };
 
     if (loading) {
@@ -72,11 +74,11 @@ export default function CourtDetailPage() {
         return (
             <div className="space-y-6">
                 <div className="text-center py-12">
-                    <h2 className="text-2xl font-semibold mb-2">Court not found</h2>
-                    <p className="text-muted-foreground mb-4">The court you're looking for doesn't exist.</p>
+                    <h2 className="text-2xl font-semibold mb-2">{t("detail.notFoundTitle")}</h2>
+                    <p className="text-muted-foreground mb-4">{t("detail.notFoundDescription")}</p>
                     <Button onClick={() => router.push("/courts")}>
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Courts
+                        {t("detail.backToCourts")}
                     </Button>
                 </div>
             </div>
@@ -106,7 +108,7 @@ export default function CourtDetailPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <Badge variant={court.active ? "default" : "secondary"}>
-                        {court.active ? "Active" : "Inactive"}
+                        {court.active ? t("detail.active") : t("detail.inactive")}
                     </Badge>
                     <CourtFormDialog
                         court={court}
@@ -119,22 +121,22 @@ export default function CourtDetailPage() {
             {/* Court Details */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Court Information</CardTitle>
+                    <CardTitle>{t("detail.informationTitle")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <h4 className="text-sm font-medium text-muted-foreground mb-1">Price per Hour</h4>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-1">{t("detail.pricePerHour")}</h4>
                             <p className="text-2xl font-bold">{formatCurrency(court.price_per_hour)}</p>
                         </div>
                         <div>
-                            <h4 className="text-sm font-medium text-muted-foreground mb-1">Status</h4>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-1">{t("detail.status")}</h4>
                             <Badge variant={court.active ? "default" : "secondary"}>
-                                {court.active ? "Available for Booking" : "Unavailable"}
+                                {court.active ? t("detail.availableForBooking") : t("detail.unavailable")}
                             </Badge>
                         </div>
                         <div>
-                            <h4 className="text-sm font-medium text-muted-foreground mb-1">Branch</h4>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-1">{t("detail.branch")}</h4>
                             <p className="text-lg">{getBranchName(court.branch_id)}</p>
                         </div>
                     </div>
@@ -144,7 +146,9 @@ export default function CourtDetailPage() {
             <CourtHourlyRates courtId={courtId} basePricePerHour={court.price_per_hour} />
 
             {/* Perks Section */}
-            <CourtPerks courtId={courtId} courtName={court.name} />
+            <div id="perks">
+                <CourtPerks courtId={courtId} courtName={court.name} />
+            </div>
         </div>
     );
 }

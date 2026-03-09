@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Booking } from "@/schemas/booking.schema";
 import { Branch } from "@/schemas/branch.schema";
 import { Court } from "@/schemas/court.schema";
@@ -28,25 +29,27 @@ interface BookingTableProps {
 }
 
 export function BookingTable({ bookings, branches, courts, isLoading, onUpdatePayment, onCancel }: BookingTableProps) {
+    const t = useTranslations("bookings");
+    
     const getBranchName = (branchId: number) => {
         const branch = branches.find(b => Number(b.id) === branchId);
-        return branch ? branch.name : "Unknown";
+        return branch ? branch.name : t("table.unknown");
     };
 
     const getCourtName = (courtId: number) => {
         const court = courts.find(c => Number(c.id) === courtId);
-        return court ? court.name : "Unknown";
+        return court ? court.name : t("table.unknown");
     };
 
     const paymentStatusMap = {
-        pending: { label: "Pending", variant: "secondary" as const },
-        paid: { label: "Paid", variant: "default" as const },
-        refunded: { label: "Refunded", variant: "destructive" as const },
+        pending: { label: t("status.pending"), variant: "secondary" as const },
+        paid: { label: t("status.paid"), variant: "default" as const },
+        refunded: { label: t("status.refunded"), variant: "destructive" as const },
     };
 
     const columns = [
         {
-            header: "User",
+            header: t("table.userHeader"),
             cell: (b: Booking) => (
                 <div className="flex flex-col">
                     <span className="font-medium text-sm">{b.user_name}</span>
@@ -55,7 +58,7 @@ export function BookingTable({ bookings, branches, courts, isLoading, onUpdatePa
             ),
         },
         {
-            header: "Location",
+            header: t("table.locationHeader"),
             cell: (b: Booking) => (
                 <div className="flex flex-col">
                     <span className="text-sm">{getCourtName(b.court_id)}</span>
@@ -64,7 +67,7 @@ export function BookingTable({ bookings, branches, courts, isLoading, onUpdatePa
             ),
         },
         {
-            header: "Schedule",
+            header: t("table.scheduleHeader"),
             cell: (b: Booking) => (
                 <div className="flex flex-col">
                     <span className="text-sm font-medium">{formatDate(b.date, "PP")}</span>
@@ -75,11 +78,11 @@ export function BookingTable({ bookings, branches, courts, isLoading, onUpdatePa
             ),
         },
         {
-            header: "Price",
+            header: t("table.priceHeader"),
             cell: (b: Booking) => <span className="font-semibold">{formatCurrency(b.total_price)}</span>,
         },
         {
-            header: "Notes",
+            header: t("table.notesHeader"),
             cell: (b: Booking) => (
                 <div className="max-w-[200px]">
                     {b.notes ? (
@@ -87,49 +90,49 @@ export function BookingTable({ bookings, branches, courts, isLoading, onUpdatePa
                             {b.notes}
                         </p>
                     ) : (
-                        <p className="text-sm text-muted-foreground/50 italic">No notes</p>
+                        <p className="text-sm text-muted-foreground/50 italic">{t("table.noNotes")}</p>
                     )}
                 </div>
             ),
         },
         {
-            header: "Status",
+            header: t("table.statusHeader"),
             cell: (b: Booking) => (
                 <div className="flex flex-col gap-1 items-start">
                     <Badge variant={b.status === "confirmed" ? "outline" : "destructive"}>
-                        {b.status.toUpperCase()}
+                        {b.status === "confirmed" ? t("status.confirmed") : t("status.cancelled")}
                     </Badge>
                     <Badge variant={b.payment_status ? paymentStatusMap[b.payment_status].variant : "secondary"} className="text-[10px]">
-                        {b.payment_status ? paymentStatusMap[b.payment_status].label : "PENDING"}
+                        {b.payment_status ? paymentStatusMap[b.payment_status].label : t("status.pending")}
                     </Badge>
                 </div>
             ),
         },
         {
-            header: "Actions",
+            header: t("table.actionsHeader"),
             className: "text-right",
             cell: (b: Booking) => (
                 <div className="flex justify-end pr-2">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0" data-testid={`booking-actions-${b.id}`}>
-                                <span className="sr-only">Open menu</span>
+                                <span className="sr-only">{t("table.openMenu")}</span>
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => onUpdatePayment(b.id, "paid")} disabled={b.payment_status === "paid"}>
-                                <Banknote className="mr-2 h-4 w-4" /> Mark as Paid
+                                <Banknote className="mr-2 h-4 w-4" /> {t("table.markAsPaid")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => onUpdatePayment(b.id, "refunded")} disabled={b.payment_status === "refunded"}>
-                                <Banknote className="mr-2 h-4 w-4 text-destructive" /> Mark as Refunded
+                                <Banknote className="mr-2 h-4 w-4 text-destructive" /> {t("table.markAsRefunded")}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
 
                     <ConfirmDialog
-                        title="Cancel Booking"
-                        description={`Cancel booking for ${b.user_name}? This cannot be undone.`}
+                        title={t("table.cancelTitle")}
+                        description={t("table.cancelDescription", { userName: b.user_name })}
                         onConfirm={() => onCancel(b.id)}
                         disabled={b.status === "cancelled"}
                         triggerButton={
@@ -148,8 +151,8 @@ export function BookingTable({ bookings, branches, courts, isLoading, onUpdatePa
             columns={columns}
             data={bookings}
             isLoading={isLoading}
-            emptyStateTitle="No bookings found"
-            emptyStateDescription="No reservations have been made yet."
+            emptyStateTitle={t("table.emptyTitle")}
+            emptyStateDescription={t("table.emptyDescription")}
         />
     );
 }

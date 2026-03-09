@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Branch, branchFormSchema, BranchFormData } from "@/schemas/branch.schema";
@@ -25,6 +26,7 @@ interface BranchFormDialogProps {
 }
 
 export function BranchFormDialog({ branch, onSubmit }: BranchFormDialogProps) {
+    const t = useTranslations("branches.form");
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const isEdit = !!branch;
@@ -79,22 +81,22 @@ export function BranchFormDialog({ branch, onSubmit }: BranchFormDialogProps) {
                 ) : (
                     <Button data-testid="create-branch-btn">
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Branch
+                        {t("addButton")}
                     </Button>
                 )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{isEdit ? "Edit Branch" : "Add Branch"}</DialogTitle>
+                    <DialogTitle>{isEdit ? t("editTitle") : t("createTitle")}</DialogTitle>
                     <DialogDescription>
                         {isEdit
-                            ? "Make changes to the branch profile here. Click save when you're done."
-                            : "Add a new branch location."}
+                            ? t("editDescription")
+                            : t("createDescription")}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="branch-form" noValidate>
                     <div className="space-y-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">{t("nameLabel")}</Label>
                         <Input
                             id="name"
                             {...form.register("name")}
@@ -107,7 +109,7 @@ export function BranchFormDialog({ branch, onSubmit }: BranchFormDialogProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="address">Address</Label>
+                        <Label htmlFor="address">{t("addressLabel")}</Label>
                         <Input
                             id="address"
                             {...form.register("address")}
@@ -120,7 +122,7 @@ export function BranchFormDialog({ branch, onSubmit }: BranchFormDialogProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="timezone">Timezone</Label>
+                        <Label htmlFor="timezone">{t("timezoneLabel")}</Label>
                         <Input
                             id="timezone"
                             {...form.register("timezone")}
@@ -130,13 +132,13 @@ export function BranchFormDialog({ branch, onSubmit }: BranchFormDialogProps) {
                         {form.formState.errors.timezone && (
                             <p className="text-xs text-destructive">{form.formState.errors.timezone.message}</p>
                         )}
-                        <p className="text-xs text-muted-foreground">e.g. Africa/Cairo, UTC, America/New_York</p>
+                        <p className="text-xs text-muted-foreground">{t("timezoneHint")}</p>
                     </div>
 
                     <div className="flex flex-row items-center justify-between rounded-lg border border-border p-3 shadow-sm">
                         <div className="space-y-0.5">
-                            <Label htmlFor="active">Active Status</Label>
-                            <p className="text-xs text-muted-foreground">Is this branch currently operating?</p>
+                            <Label htmlFor="active">{t("activeStatusLabel")}</Label>
+                            <p className="text-xs text-muted-foreground">{t("activeStatusHelp")}</p>
                         </div>
                         <Switch
                             id="active"
@@ -149,10 +151,10 @@ export function BranchFormDialog({ branch, onSubmit }: BranchFormDialogProps) {
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-                            Cancel
+                            {t("cancel")}
                         </Button>
                         <Button type="submit" disabled={loading} data-testid="branch-submit-btn">
-                            {loading ? "Saving..." : "Save"}
+                            {loading ? t("saving") : t("save")}
                         </Button>
                     </DialogFooter>
                 </form>

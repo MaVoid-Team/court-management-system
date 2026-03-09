@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { useTransition } from "react";
 import { motion } from "framer-motion";
@@ -16,6 +16,7 @@ interface LanguageToggleProps {
 }
 
 export function LanguageToggle({ className }: LanguageToggleProps) {
+    const t = useTranslations("common");
     const locale = useLocale();
     const router = useRouter();
     const pathname = usePathname();
@@ -35,7 +36,7 @@ export function LanguageToggle({ className }: LanguageToggleProps) {
                 isPending && "opacity-50 pointer-events-none",
                 className
             )}
-            aria-label="Switch language"
+            aria-label={t("switchLanguage")}
         >
             {LOCALES.map(({ code, label }) => (
                 <button
@@ -43,7 +44,7 @@ export function LanguageToggle({ className }: LanguageToggleProps) {
                     onClick={() => switchTo(code)}
                     disabled={isPending}
                     aria-pressed={locale === code}
-                    aria-label={code === "en" ? "Switch to English" : "Switch to Arabic"}
+                    aria-label={code === "en" ? t("switchToEnglish") : t("switchToArabic")}
                     className="relative flex items-center justify-center w-9 h-7 cursor-pointer"
                 >
                     {locale === code && (

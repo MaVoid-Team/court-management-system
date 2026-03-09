@@ -6,34 +6,44 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCourtsAPI } from "@/hooks/api/use-courts";
 import { useAvailabilityAPI } from "@/hooks/api/use-availability";
 import { useBookingsAPI } from "@/hooks/api/use-bookings";
+import { useSettingsAPI } from "@/hooks/api/use-settings";
 import { bookingFormSchema, BookingFormData, Booking } from "@/schemas/booking.schema";
 import { Court } from "@/schemas/court.schema";
 import { AvailabilityGrid } from "@/components/book/availability-grid";
 import { BookingConfirmation } from "@/components/book/booking-confirmation";
 import { CourtPerksDisplay } from "@/components/courts/court-perks-display";
 import { PromoCodeInput } from "@/components/book/promo-code-input";
+import { BookingTermsDialog } from "@/components/book/booking-terms-dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { Loader2, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { getDefaultBranchId } from "@/lib/branch";
+import { useTranslations } from "next-intl";
+import { formatCurrency } from "@/lib/format-currency";
 
 export function BookingView() {
+    const t = useTranslations("publicBook");
     const BRANCH_ID = getDefaultBranchId();
 
     const { courts, fetchPublicCourts, loading: courtsLoading } = useCourtsAPI();
     const { availability, fetchAvailability, loading: availabilityLoading } = useAvailabilityAPI();
     const { createBooking, loading: bookingLoading } = useBookingsAPI();
+    const { setting, fetchPublicSettings } = useSettingsAPI();
 
     const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const [selectedSlot, setSelectedSlot] = useState<{ start_time: string, end_time: string } | null>(null);
     const [bookingResult, setBookingResult] = useState<Booking | null>(null);
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+    const hasTerms = !!(setting?.booking_terms);
 
     const form = useForm<BookingFormData>({
         resolver: zodResolver(bookingFormSchema),
@@ -69,6 +79,10 @@ export function BookingView() {
         }
     }, [selectedCourt, selectedDate, fetchAvailability, form]);
 
+    useEffect(() => {
+        fetchPublicSettings({ branch_id: BRANCH_ID });
+    }, [fetchPublicSettings, BRANCH_ID]);
+
     const handleSlotSelect = (slot: { start_time: string, end_time: string }) => {
         setSelectedSlot(slot);
         form.setValue("start_time", slot.start_time);
@@ -95,9 +109,9 @@ export function BookingView() {
     return (
         <div className="w-full max-w-4xl mx-auto">
             <div className="flex flex-col items-center text-center space-y-4 mb-12">
-                <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Book a Court</h1>
+                <h1 className="text-4xl md:text-5xl font-bold tracking-tight">{t("title")}</h1>
                 <p className="text-muted-foreground text-lg">
-                    Select your preferred court, date, and time slot to play.
+                    {t("subtitle")}
                 </p>
             </div>
 
@@ -110,35 +124,34 @@ export function BookingView() {
                             <CardContent className="p-6">
                                 <h3 className="text-xl font-bold mb-6 flex items-center">
                                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">1</span>
-                                    Choose Court
+                                    {t("steps.chooseCourt")}
                                 </h3>
                                 <FormField
                                     control={form.control}
                                     name="court_id"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Court</FormLabel>
+                                            <FormLabel>{t("courtLabel")}</FormLabel>
                                             <Select
                                                 onValueChange={(val) => {
                                                     const courtId = Number(val);
                                                     field.onChange(courtId);
                                                     const court = courts.find(c => Number(c.id) === courtId);
                                                     setSelectedCourt(court || null);
-                                                    // Update court price in form
                                                     form.setValue("court_price", court ? Number(court.price_per_hour) : undefined);
                                                 }}
                                                 value={field.value ? String(field.value) : undefined}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="h-12">
-                                                        <SelectValue placeholder="Select a court" />
+                                                        <SelectValue placeholder={t("selectCourtPlaceholder")} />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
                                                     {courts.filter(c => c.active).map((court) => (
                                                         <SelectItem key={court.id} value={court.id}>
                                                             <div className="flex flex-col">
-                                                                <span>{court.name} (${court.price_per_hour}/hr)</span>
+                                                                <span>{court.name} ({formatCurrency(court.price_per_hour)} {t("perHour")})</span>
                                                                 {court.perks && court.perks.length > 0 && (
                                                                     <div className="flex gap-1 mt-1">
                                                                         {court.perks.filter(p => p.active).slice(0, 2).map((perk) => (
@@ -148,7 +161,7 @@ export function BookingView() {
                                                                         ))}
                                                                         {court.perks.filter(p => p.active).length > 2 && (
                                                                             <span className="text-xs text-muted-foreground">
-                                                                                +{court.perks.filter(p => p.active).length - 2} more
+                                                                                {t("morePerks", { count: court.perks.filter(p => p.active).length - 2 })}
                                                                             </span>
                                                                         )}
                                                                     </div>
@@ -178,7 +191,7 @@ export function BookingView() {
                             <CardContent className="p-6">
                                 <h3 className="text-xl font-bold mb-6 flex items-center">
                                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">2</span>
-                                    Select Date
+                                    {t("steps.selectDate")}
                                 </h3>
 
                                 <div className="flex justify-center border rounded-xl overflow-hidden py-2 bg-background/50">
@@ -217,12 +230,12 @@ export function BookingView() {
                         <CardContent className="p-6">
                             <h3 className="text-xl font-bold mb-6 flex items-center">
                                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">3</span>
-                                Available Time Slots
+                                {t("steps.availableSlots")}
                             </h3>
 
                             {!selectedCourt ? (
                                 <div className="py-12 bg-muted/30 border border-dashed border-border/60 rounded-2xl flex flex-col items-center justify-center text-center">
-                                    <p className="text-muted-foreground">Please select a court and date to view availability.</p>
+                                    <p className="text-muted-foreground">{t("selectCourtAndDate")}</p>
                                 </div>
                             ) : (
                                 <AvailabilityGrid
@@ -234,7 +247,7 @@ export function BookingView() {
                             )}
                             {(form.formState.errors.start_time || form.formState.errors.end_time) && (
                                 <p className="text-[0.8rem] font-medium text-destructive mt-3">
-                                    Please select an available time slot.
+                                    {t("selectAvailableSlot")}
                                 </p>
                             )}
                         </CardContent>
@@ -245,7 +258,7 @@ export function BookingView() {
                         <CardContent className="p-6">
                             <h3 className="text-xl font-bold mb-6 flex items-center">
                                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">4</span>
-                                Your Information
+                                {t("steps.yourInfo")}
                             </h3>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -254,9 +267,9 @@ export function BookingView() {
                                     name="user_name"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Full Name</FormLabel>
+                                            <FormLabel>{t("fullNameLabel")}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="John Doe" className="h-12" {...field} />
+                                                <Input placeholder={t("fullNamePlaceholder")} className="h-12" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -267,25 +280,25 @@ export function BookingView() {
                                     name="user_phone"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Phone Number</FormLabel>
+                                            <FormLabel>{t("phoneLabel")}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="+1234567890" className="h-12" {...field} />
+                                                <Input placeholder={t("phonePlaceholder")} className="h-12" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
                             </div>
-                            
+
                             <FormField
                                 control={form.control}
                                 name="notes"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Additional Notes (Optional)</FormLabel>
+                                    <FormItem className="mt-6">
+                                        <FormLabel>{t("notesLabel")}</FormLabel>
                                         <FormControl>
-                                            <Textarea 
-                                                placeholder="Any special requests or information you'd like to share with the court owner..."
+                                            <Textarea
+                                                placeholder={t("notesPlaceholder")}
                                                 className="min-h-[100px] resize-none"
                                                 {...field}
                                             />
@@ -300,7 +313,7 @@ export function BookingView() {
                     {/* Step 5: Promo Code */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                         <CardContent className="p-6">
-                            <PromoCodeInput 
+                            <PromoCodeInput
                                 selectedCourt={selectedCourt}
                                 startTime={selectedSlot?.start_time}
                                 endTime={selectedSlot?.end_time}
@@ -308,18 +321,41 @@ export function BookingView() {
                         </CardContent>
                     </Card>
 
+                    {/* Terms & Conditions */}
+                    {hasTerms && (
+                        <div className="flex items-start space-x-3">
+                            <Checkbox
+                                id="terms"
+                                checked={acceptedTerms}
+                                onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                            />
+                            <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
+                                {t("termsPrefix")}{" "}
+                                <BookingTermsDialog
+                                    terms={setting?.booking_terms ?? null}
+                                    trigger={
+                                        <button type="button" className="inline-flex items-center gap-1 text-primary underline underline-offset-2 hover:text-primary/80">
+                                            <FileText className="h-3.5 w-3.5" />
+                                            {t("termsLink")}
+                                        </button>
+                                    }
+                                />
+                            </label>
+                        </div>
+                    )}
+
                     <Button
                         type="submit"
-                        disabled={bookingLoading || !selectedSlot}
+                        disabled={bookingLoading || !selectedSlot || (hasTerms && !acceptedTerms)}
                         className="w-full h-16 text-lg font-bold transition-all hover:-translate-y-0.5 active:translate-y-0"
                     >
                         {bookingLoading ? (
                             <>
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Processing Booking...
+                                {t("processingBooking")}
                             </>
                         ) : (
-                            "Confirm Booking"
+                            t("confirmBooking")
                         )}
                     </Button>
                 </form>

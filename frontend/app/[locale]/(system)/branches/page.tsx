@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useBranchesAPI } from "@/hooks/api/use-branches";
 import { usePagination } from "@/hooks/code/use-pagination";
@@ -10,6 +11,8 @@ import { PaginationControls } from "@/components/shared/pagination-controls";
 import { BranchFormData } from "@/schemas/branch.schema";
 
 export default function BranchesPage() {
+    const t = useTranslations("branches.page");
+    const tToast = useTranslations("branches.toasts");
     const {
         branches,
         pagination: meta,
@@ -34,7 +37,7 @@ export default function BranchesPage() {
     const handleCreate = async (data: BranchFormData) => {
         const res = await createBranch(data);
         if (res.success) {
-            toast.success("Branch created successfully");
+            toast.success(tToast("created"));
             loadData();
         }
         return res;
@@ -43,7 +46,7 @@ export default function BranchesPage() {
     const handleUpdate = async (id: string, data: Partial<BranchFormData>) => {
         const res = await updateBranch(id, data);
         if (res.success) {
-            toast.success("Branch updated successfully");
+            toast.success(tToast("updated"));
             loadData();
         }
         return res;
@@ -52,7 +55,7 @@ export default function BranchesPage() {
     const handleDelete = async (id: string) => {
         const res = await deleteBranch(id);
         if (res.success) {
-            toast.success("Branch deleted successfully");
+            toast.success(tToast("deleted"));
             loadData();
         }
     };
@@ -61,9 +64,9 @@ export default function BranchesPage() {
         <div className="space-y-6 animate-in fade-in-50 duration-500">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Branches</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("title")}</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Manage your physical court locations and their settings.
+                        {t("subtitle")}
                     </p>
                 </div>
                 <BranchFormDialog onSubmit={handleCreate} />

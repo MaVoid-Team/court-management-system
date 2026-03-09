@@ -15,6 +15,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
 
 interface UserActionsProps {
     /** Show a "Go to Dashboard" item inside the dropdown. Default: false. */
@@ -22,6 +23,8 @@ interface UserActionsProps {
 }
 
 export function UserActions({ showDashboardLink = false }: UserActionsProps) {
+    const t = useTranslations("common");
+    const tAdmin = useTranslations("admins.form.roleOptions");
     const { admin, isAuthenticated } = useAuthContext();
     const { logout } = useAuthAPI();
 
@@ -34,7 +37,7 @@ export function UserActions({ showDashboardLink = false }: UserActionsProps) {
         return (
             <Button asChild className="group hover:gap-3 transition-all duration-200 h-10 px-5">
                 <Link href="/auth/login" className="flex items-center gap-2">
-                    Sign In
+                    {t("signIn")}
                     <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Link>
             </Button>
@@ -48,7 +51,7 @@ export function UserActions({ showDashboardLink = false }: UserActionsProps) {
                     variant="secondary"
                     className="hidden md:flex text-xs bg-primary/10 text-primary border-0 font-bold uppercase tracking-wider"
                 >
-                    Super Admin
+                    {t("superAdmin")}
                 </Badge>
             )}
 
@@ -65,7 +68,7 @@ export function UserActions({ showDashboardLink = false }: UserActionsProps) {
                                 {getInitials(admin?.email)}
                             </AvatarFallback>
                         </Avatar>
-                        <span className="sr-only">Toggle user menu</span>
+                        <span className="sr-only">{t("toggleUserMenu")}</span>
                     </Button>
                 </DropdownMenuTrigger>
 
@@ -73,10 +76,10 @@ export function UserActions({ showDashboardLink = false }: UserActionsProps) {
                     <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                             <p className="text-sm font-medium leading-none">
-                                {admin?.email || "Admin User"}
+                                {admin?.email || t("adminUser")}
                             </p>
                             <p className="text-xs leading-none text-muted-foreground">
-                                Role: {admin?.role.replace("_", " ")}
+                                {t("rolePrefix")} {admin?.role === "super_admin" ? tAdmin("superAdmin") : tAdmin("branchAdmin")}
                             </p>
                         </div>
                     </DropdownMenuLabel>
@@ -87,7 +90,7 @@ export function UserActions({ showDashboardLink = false }: UserActionsProps) {
                             <DropdownMenuItem asChild>
                                 <Link href="/dashboard" className="flex items-center cursor-pointer">
                                     <LayoutDashboard className="mr-2 h-4 w-4" />
-                                    Go to Dashboard
+                                    {t("goToDashboard")}
                                 </Link>
                             </DropdownMenuItem>
                         </>
@@ -100,7 +103,7 @@ export function UserActions({ showDashboardLink = false }: UserActionsProps) {
                         data-testid="logout-button"
                     >
                         <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
+                        <span>{t("logOut")}</span>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

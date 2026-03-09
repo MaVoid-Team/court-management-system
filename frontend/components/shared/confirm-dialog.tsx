@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ConfirmDialogProps {
     title?: string;
@@ -24,12 +25,15 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({
-    title = "Are you sure?",
-    description = "This action cannot be undone. This will permanently delete the record from our servers.",
+    title,
+    description,
     onConfirm,
     triggerButton,
     disabled = false,
 }: ConfirmDialogProps) {
+    const t = useTranslations("common.confirm");
+    const resolvedTitle = title ?? t("title");
+    const resolvedDescription = description ?? t("description");
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -60,12 +64,12 @@ export function ConfirmDialog({
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>{title}</AlertDialogTitle>
-                    <AlertDialogDescription>{description}</AlertDialogDescription>
+                    <AlertDialogTitle>{resolvedTitle}</AlertDialogTitle>
+                    <AlertDialogDescription>{resolvedDescription}</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel disabled={loading} data-testid="confirm-dialog-cancel">
-                        Cancel
+                        {t("cancel")}
                     </AlertDialogCancel>
                     <Button
                         variant="destructive"
@@ -73,7 +77,7 @@ export function ConfirmDialog({
                         disabled={loading}
                         data-testid="confirm-dialog-submit"
                     >
-                        {loading ? "Deleting..." : "Continue"}
+                        {loading ? t("deleting") : t("continue")}
                     </Button>
                 </AlertDialogFooter>
             </AlertDialogContent>

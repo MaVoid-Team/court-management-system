@@ -44,11 +44,6 @@ export function LandingFooter() {
                 CourtManager
               </span>
             </Link>
-
-            <div className="mt-6 flex items-center gap-1 text-xs text-muted-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-              <span className="ms-1">{t("systemsOperational")}</span>
-            </div>
           </div>
 
           {/* Link columns */}
@@ -79,7 +74,6 @@ export function LandingFooter() {
           <p className="text-xs text-muted-foreground/50">
             {t("copyright", { year: currentYear })}
           </p>
-          <p className="text-xs text-muted-foreground/50">{t("builtWith")}</p>
         </div>
       </div>
     </footer>

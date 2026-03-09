@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useBookingsAPI } from "@/hooks/api/use-bookings";
 import { useBranchesAPI } from "@/hooks/api/use-branches";
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function BookingsPage() {
+    const t = useTranslations("bookings");
     const [filterBranchId, setFilterBranchId] = useState<string>("all");
     const [filterStatus, setFilterStatus] = useState<string>("all");
 
@@ -63,7 +65,7 @@ export default function BookingsPage() {
     const handleUpdatePayment = async (id: string, status: "pending" | "paid" | "refunded") => {
         const res = await updatePaymentStatus(id, status);
         if (res.success) {
-            toast.success(`Payment status updated to ${status}`);
+            toast.success(t("toasts.paymentStatusUpdated", { status }));
             loadData();
         }
         return res;
@@ -72,7 +74,7 @@ export default function BookingsPage() {
     const handleCancel = async (id: string) => {
         const res = await cancelBooking(id);
         if (res.success) {
-            toast.success("Booking cancelled successfully");
+            toast.success(t("toasts.cancelled"));
             loadData();
         }
     };
@@ -80,9 +82,9 @@ export default function BookingsPage() {
     const handleExportExcel = () => {
         try {
             exportBookingsToExcel({ bookings, branches, courts });
-            toast.success("Excel file exported successfully");
+            toast.success(t("toasts.excelExported"));
         } catch (error) {
-            toast.error("Failed to export Excel file");
+            toast.error(t("toasts.exportFailed", { format: "Excel" }));
             console.error("Export error:", error);
         }
     };
@@ -90,9 +92,9 @@ export default function BookingsPage() {
     const handleExportCSV = () => {
         try {
             exportBookingsToCSV({ bookings, branches, courts });
-            toast.success("CSV file exported successfully");
+            toast.success(t("toasts.csvExported"));
         } catch (error) {
-            toast.error("Failed to export CSV file");
+            toast.error(t("toasts.exportFailed", { format: "CSV" }));
             console.error("Export error:", error);
         }
     };
@@ -107,10 +109,10 @@ export default function BookingsPage() {
             const response = await fetchBookings(params, { skipStateUpdate: true });
             if (response?.success && response?.data) {
                 exportBookingsToExcel({ bookings: response.data, branches, courts });
-                toast.success("All bookings exported successfully");
+                toast.success(t("toasts.allExported"));
             }
         } catch (error) {
-            toast.error("Failed to export all bookings");
+            toast.error(t("toasts.exportAllFailed"));
             console.error("Export error:", error);
         }
     };
@@ -119,9 +121,9 @@ export default function BookingsPage() {
         <div className="space-y-6 animate-in fade-in-50 duration-500">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Bookings</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("page.title")}</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Monitor and manage your court reservations.
+                        {t("page.subtitle")}
                     </p>
                 </div>
 
@@ -130,46 +132,46 @@ export default function BookingsPage() {
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="gap-2">
                                 <Download className="h-4 w-4" />
-                                Export
+                                {t("page.exportButton")}
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={handleExportExcel}>
                                 <FileSpreadsheet className="mr-2 h-4 w-4" />
-                                Export Current Page (Excel)
+                                {t("export.currentPageExcel")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={handleExportCSV}>
                                 <FileSpreadsheet className="mr-2 h-4 w-4" />
-                                Export Current Page (CSV)
+                                {t("export.currentPageCSV")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={handleExportAll}>
                                 <Download className="mr-2 h-4 w-4" />
-                                Export All Filtered (Excel)
+                                {t("export.exportAllFiltered")}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
 
                     <div className="flex items-center gap-2">
-                        <Label className="text-sm text-muted-foreground whitespace-nowrap">Status:</Label>
+                        <Label className="text-sm text-muted-foreground whitespace-nowrap">{t("page.statusFilter")}</Label>
                         <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v); goToPage(1); }}>
                             <SelectTrigger className="w-[140px]" data-testid="status-filter">
-                                <SelectValue placeholder="All" />
+                                <SelectValue placeholder={t("page.allStatuses")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All</SelectItem>
-                                <SelectItem value="confirmed">Confirmed</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                                <SelectItem value="all">{t("page.allStatuses")}</SelectItem>
+                                <SelectItem value="confirmed">{t("status.confirmed")}</SelectItem>
+                                <SelectItem value="cancelled">{t("status.cancelled")}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Label className="text-sm text-muted-foreground whitespace-nowrap">Branch:</Label>
+                        <Label className="text-sm text-muted-foreground whitespace-nowrap">{t("page.branchFilter")}</Label>
                         <Select value={filterBranchId} onValueChange={(v) => { setFilterBranchId(v); goToPage(1); }}>
                             <SelectTrigger className="w-[160px]" data-testid="branch-filter">
-                                <SelectValue placeholder="All Branches" />
+                                <SelectValue placeholder={t("page.allBranches")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Branches</SelectItem>
+                                <SelectItem value="all">{t("page.allBranches")}</SelectItem>
                                 {branches.map(b => (
                                     <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
                                 ))}

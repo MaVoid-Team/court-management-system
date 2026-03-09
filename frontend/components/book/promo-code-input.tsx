@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Percent, X, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { getDefaultBranchId } from "@/lib/branch";
+import { useTranslations } from "next-intl";
+import { formatCurrency } from "@/lib/format-currency";
 
 interface PromoCodeInputProps {
     selectedCourt?: any;
@@ -18,6 +20,7 @@ interface PromoCodeInputProps {
 }
 
 export function PromoCodeInput({ selectedCourt, startTime, endTime }: PromoCodeInputProps) {
+    const t = useTranslations("promoInput");
     const form = useFormContext();
     const [promoCode, setPromoCode] = useState("");
     const [isValidating, setIsValidating] = useState(false);
@@ -53,12 +56,12 @@ export function PromoCodeInput({ selectedCourt, startTime, endTime }: PromoCodeI
 
     const handleValidatePromoCode = async () => {
         if (!promoCode.trim()) {
-            toast.error("Please enter a promo code");
+            toast.error(t("toasts.enterPromoCode"));
             return;
         }
 
         if (currentTotal <= 0) {
-            toast.error("Please select a court and time first");
+            toast.error(t("toasts.selectCourtAndTime"));
             return;
         }
 
@@ -72,16 +75,16 @@ export function PromoCodeInput({ selectedCourt, startTime, endTime }: PromoCodeI
             if (result.valid) {
                 setValidationResult(result);
                 form.setValue("promo_code", promoCode.toUpperCase());
-                toast.success(`Promo code applied! You saved ${formatCurrency(result.discount_amount || 0)}`);
+                toast.success(t("toasts.applied", { amount: formatCurrency(result.discount_amount || 0) }));
             } else {
                 setValidationResult(null);
                 form.setValue("promo_code", "");
-                toast.error(result.error || "Invalid promo code");
+                toast.error(result.error || t("toasts.invalidPromoCode"));
             }
         } catch (error) {
             setValidationResult(null);
             form.setValue("promo_code", "");
-            toast.error("Failed to validate promo code");
+            toast.error(t("toasts.validateFailed"));
         } finally {
             setIsValidating(false);
         }
@@ -94,24 +97,17 @@ export function PromoCodeInput({ selectedCourt, startTime, endTime }: PromoCodeI
         setDiscountAmount(0);
     };
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-        }).format(amount);
-    };
-
     return (
         <div className="space-y-4">
             <div className="flex items-center gap-2">
                 <Percent className="h-4 w-4 text-primary" />
-                <label className="text-sm font-medium">Promo Code (Optional)</label>
+                <label className="text-sm font-medium">{t("label")}</label>
             </div>
             
             {!validationResult?.valid ? (
                 <div className="flex gap-2">
                     <Input
-                        placeholder="Enter promo code"
+                        placeholder={t("placeholder")}
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                         className="flex-1"
@@ -123,7 +119,7 @@ export function PromoCodeInput({ selectedCourt, startTime, endTime }: PromoCodeI
                         onClick={handleValidatePromoCode}
                         disabled={!promoCode.trim() || isValidating || currentTotal <= 0}
                     >
-                        {isValidating ? "Validating..." : "Apply"}
+                        {isValidating ? t("validating") : t("apply")}
                     </Button>
                 </div>
             ) : (
@@ -163,15 +159,15 @@ export function PromoCodeInput({ selectedCourt, startTime, endTime }: PromoCodeI
             {discountAmount > 0 && (
                 <div className="text-sm text-muted-foreground">
                     <div className="flex justify-between">
-                        <span>Original amount:</span>
+                        <span>{t("summary.originalAmount")}</span>
                         <span>{formatCurrency(currentTotal)}</span>
                     </div>
                     <div className="flex justify-between text-green-600 dark:text-green-400">
-                        <span>Discount:</span>
+                        <span>{t("summary.discount")}</span>
                         <span>-{formatCurrency(discountAmount)}</span>
                     </div>
                     <div className="flex justify-between font-medium">
-                        <span>Final amount:</span>
+                        <span>{t("summary.finalAmount")}</span>
                         <span>{formatCurrency(currentTotal - discountAmount)}</span>
                     </div>
                 </div>

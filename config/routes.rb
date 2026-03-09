@@ -11,6 +11,7 @@ Rails.application.routes.draw do
     post "bookings", to: "bookings#create"
     get  "reviews",  to: "reviews#index"
     post "reviews",  to: "reviews#create"
+    get "settings", to: "settings#show"
     post "branches/:branch_id/promo_codes/validate", to: "promo_codes#validate"
 
     namespace :admin do

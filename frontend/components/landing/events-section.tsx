@@ -21,8 +21,18 @@ export function EventsSection() {
   const animated = useRef(false);
 
   useEffect(() => {
-    fetchPublicEvents({ branch_id: getDefaultBranchId(), upcoming: true });
+    const branchId = getDefaultBranchId();
+    console.log('Events section - fetching with branch_id:', branchId, 'upcoming: true');
+    fetchPublicEvents({ branch_id: branchId, upcoming: true });
   }, [fetchPublicEvents]);
+
+  // Fallback: if no events found for default branch, try fetching all events
+  useEffect(() => {
+    if (!loading && !error && events.length === 0) {
+      console.log('No events found for default branch, trying to fetch all events...');
+      fetchPublicEvents({ upcoming: true }); // No branch_id filter
+    }
+  }, [loading, error, events.length, fetchPublicEvents]);
 
   useEffect(() => {
     if (loading) return;
@@ -116,21 +126,29 @@ export function EventsSection() {
             <p className="text-destructive font-medium mb-2">
               {t("failedToLoad")}
             </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Error: {error}
+            </p>
             <Button
               variant="outline"
-              onClick={() =>
+              onClick={() => {
+                const branchId = getDefaultBranchId();
+                console.log('Retrying events fetch with branch_id:', branchId, 'upcoming: true');
                 fetchPublicEvents({
-                  branch_id: getDefaultBranchId(),
+                  branch_id: branchId,
                   upcoming: true,
-                })
-              }
+                });
+              }}
             >
               {t("tryAgain")}
             </Button>
           </div>
         ) : events.length === 0 ? (
           <div className="p-12 border border-border/50 bg-card rounded-2xl text-center">
-            <p className="text-muted-foreground text-lg">{t("noEvents")}</p>
+            <p className="text-muted-foreground text-lg mb-2">{t("noEvents")}</p>
+            <p className="text-sm text-muted-foreground">
+              Debug: branch_id = {getDefaultBranchId()}, loading = {loading}, error = {error}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
