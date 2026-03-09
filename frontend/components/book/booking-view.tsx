@@ -70,7 +70,11 @@ export function BookingView() {
 
     useEffect(() => {
         if (selectedBranch) {
-            fetchPublicCourts({ branch_id: Number(selectedBranch.id) });
+            console.log('Selected branch:', selectedBranch);
+            fetchPublicCourts({ branch_id: Number(selectedBranch.id) }).then(result => {
+                console.log('Courts fetch result:', result);
+                console.log('Courts data:', courts);
+            });
             fetchPublicSettings({ branch_id: Number(selectedBranch.id) });
         }
     }, [selectedBranch, fetchPublicCourts, fetchPublicSettings]);
