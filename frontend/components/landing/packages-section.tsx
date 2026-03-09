@@ -6,7 +6,7 @@ import { usePackagesAPI } from "@/hooks/api/use-packages";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { formatCurrency } from "@/lib/format-currency";
 import { ArrowRight, PackageIcon } from "lucide-react";
 import { getDefaultBranchId } from "@/lib/branch";

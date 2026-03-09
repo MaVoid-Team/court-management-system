@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { animate, createScope } from "animejs";
 import { cn } from "@/lib/utils";
 import { UserActions } from "@/components/shared/user-actions";

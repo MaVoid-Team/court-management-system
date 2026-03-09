@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { loginFormSchema, LoginFormData } from "@/schemas/auth.schema";
 import { useAuthAPI } from "@/hooks/api/use-auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { useAuthContext } from "@/contexts/auth-context";

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
 import { CalendarIcon, UsersIcon, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getDefaultBranchId } from "@/lib/branch";
 

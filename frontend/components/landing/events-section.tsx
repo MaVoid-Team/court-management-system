@@ -6,7 +6,7 @@ import { useEventsAPI } from "@/hooks/api/use-events";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { formatCurrency } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
 import { CalendarIcon, UsersIcon } from "lucide-react";

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
 import { CheckCircle2, CalendarIcon, ClockIcon, MapPinIcon, ReceiptIcon } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Court } from "@/schemas/court.schema";
 import { Badge } from "@/components/ui/badge";
 

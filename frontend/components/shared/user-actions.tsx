@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ArrowRight, LayoutDashboard, LogOut } from "lucide-react";
 import { useAuthContext } from "@/contexts/auth-context";
 import { useAuthAPI } from "@/hooks/api/use-auth";

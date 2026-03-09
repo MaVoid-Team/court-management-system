@@ -6,7 +6,7 @@ import { useCourtsAPI } from "@/hooks/api/use-courts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { formatCurrency } from "@/lib/format-currency";
 import { getDefaultBranchId } from "@/lib/branch";
 

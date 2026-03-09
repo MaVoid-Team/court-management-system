@@ -1,0 +1,84 @@
+{
+  "common": {
+    "appName": "Court Management System",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "actions": "Actions",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No",
+    "noResults": "No results found",
+    "error": "Something went wrong",
+    "success": "Success"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "loginTitle": "Sign in to your account"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "bookings": "Bookings",
+    "courts": "Courts",
+    "branches": "Branches",
+    "events": "Events",
+    "packages": "Packages",
+    "admins": "Admins",
+    "settings": "Settings",
+    "blockedSlots": "Blocked Slots"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Overview"
+  },
+  "bookings": {
+    "title": "Bookings",
+    "newBooking": "New Booking",
+    "status": "Status",
+    "court": "Court",
+    "date": "Date",
+    "time": "Time",
+    "player": "Player"
+  },
+  "courts": {
+    "title": "Courts",
+    "name": "Name",
+    "branch": "Branch",
+    "sport": "Sport",
+    "pricePerHour": "Price per Hour"
+  },
+  "branches": {
+    "title": "Branches",
+    "name": "Name",
+    "address": "Address",
+    "phone": "Phone"
+  },
+  "events": {
+    "title": "Events",
+    "name": "Name",
+    "date": "Date",
+    "location": "Location"
+  },
+  "packages": {
+    "title": "Packages",
+    "name": "Name",
+    "price": "Price",
+    "sessions": "Sessions"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme"
+  }
+}

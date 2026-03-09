@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
 import { formatTime } from "@/lib/format-time";
 import { ArrowLeft, ArrowRight, CalendarIcon, ClockIcon, MapPinIcon, UsersIcon, ShieldIcon } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";

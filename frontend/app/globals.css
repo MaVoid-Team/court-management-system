@@ -157,4 +157,9 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Use Arabic font when dir=rtl */
+  [dir="rtl"] {
+    font-family: var(--font-noto-arabic), var(--font-sans);
+  }
 }
