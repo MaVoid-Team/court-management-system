@@ -13,7 +13,7 @@ class Booking < ApplicationRecord
   has_many :payments, dependent: :destroy
 
   enum :status, { confirmed: 0, cancelled: 1 }
-  enum :payment_status, { pending: 0, paid: 1, failed: 2 }
+  enum :payment_status, { pending: 0, paid: 1, failed: 2, refunded: 3 }
 
   validates :user_name, presence: true
   validates :user_phone, presence: true

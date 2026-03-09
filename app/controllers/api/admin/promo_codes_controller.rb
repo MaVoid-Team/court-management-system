@@ -5,16 +5,18 @@ module Api
       before_action :set_promo_code, only: [:show, :update, :destroy]
 
       def index
-        @promo_codes = @branch.promo_codes.order(created_at: :desc)
+        @promo_codes = policy_scope(@branch.promo_codes).order(created_at: :desc)
         render json: PromoCodeSerializer.new(@promo_codes).serializable_hash
       end
 
       def show
+        authorize @promo_code
         render json: PromoCodeSerializer.new(@promo_code).serializable_hash
       end
 
       def create
         @promo_code = @branch.promo_codes.build(promo_code_params)
+        authorize @promo_code
         
         if @promo_code.save
           render json: PromoCodeSerializer.new(@promo_code).serializable_hash, status: :created
@@ -24,6 +26,7 @@ module Api
       end
 
       def update
+        authorize @promo_code
         if @promo_code.update(promo_code_params)
           render json: PromoCodeSerializer.new(@promo_code).serializable_hash
         else
@@ -32,11 +35,13 @@ module Api
       end
 
       def destroy
+        authorize @promo_code
         @promo_code.destroy
         head :no_content
       end
 
       def validate
+        authorize @branch, :show?
         code = params[:code]
         total_amount = params[:total_amount].to_f
         
