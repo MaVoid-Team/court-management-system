@@ -40,9 +40,14 @@ export default function SettingsPage() {
     }, [selectedBranchId, fetchSettings]);
 
     const handleSubmit = async (data: SettingFormData) => {
+        // Ensure branch_id is set for super admin
+        if (admin?.role === "super_admin" && selectedBranchId !== "all") {
+            data.branch_id = Number(selectedBranchId);
+        }
+
         let res;
         if (setting) {
-            res = await updateSettings({ id: setting.id, ...data } as any);
+            res = await updateSettings(data);
         } else {
             res = await createSettings(data);
         }

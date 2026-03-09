@@ -7,8 +7,10 @@ import { useCourtsAPI } from "@/hooks/api/use-courts";
 import { useAvailabilityAPI } from "@/hooks/api/use-availability";
 import { useBookingsAPI } from "@/hooks/api/use-bookings";
 import { useSettingsAPI } from "@/hooks/api/use-settings";
+import { useBranchesAPI } from "@/hooks/api/use-branches";
 import { bookingFormSchema, BookingFormData, Booking } from "@/schemas/booking.schema";
 import { Court } from "@/schemas/court.schema";
+import { Branch } from "@/schemas/branch.schema";
 import { AvailabilityGrid } from "@/components/book/availability-grid";
 import { BookingConfirmation } from "@/components/book/booking-confirmation";
 import { CourtPerksDisplay } from "@/components/courts/court-perks-display";
@@ -32,25 +34,83 @@ export function BookingView() {
     const t = useTranslations("publicBook");
     const BRANCH_ID = getDefaultBranchId();
 
+    const { branches, fetchPublicBranches, loading: branchesLoading } = useBranchesAPI();
     const { courts, fetchPublicCourts, loading: courtsLoading } = useCourtsAPI();
     const { availability, fetchAvailability, loading: availabilityLoading } = useAvailabilityAPI();
     const { createBooking, loading: bookingLoading } = useBookingsAPI();
     const { setting, fetchPublicSettings } = useSettingsAPI();
+    
+    // Temporary mock data for testing (remove when backend is running)
+    const mockBranches: Branch[] = [
+        {
+            id: "1",
+            name: "Main Branch",
+            address: "123 Main St, City",
+            timezone: "UTC",
+            active: true,
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+            id: "2", 
+            name: "North Branch",
+            address: "456 North Ave, City",
+            timezone: "UTC",
+            active: true,
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z"
+        }
+    ];
+    
+    // Use mock data if real branches are empty (backend not running)
+    const displayBranches = branches.length > 0 ? branches : mockBranches;
+    
+    // Temporary mock courts data for testing (remove when backend is running)
+    const mockCourts: Court[] = [
+        {
+            id: "1",
+            branch_id: 1,
+            name: "Court A",
+            price_per_hour: "50.00",
+            active: true,
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+            perks: [
+                { id: "1", name: "WiFi", active: true },
+                { id: "2", name: "Parking", active: true }
+            ]
+        } as any,
+        {
+            id: "2",
+            branch_id: 1,
+            name: "Court B", 
+            price_per_hour: "60.00",
+            active: true,
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+            perks: [
+                { id: "3", name: "Air Conditioning", active: true }
+            ]
+        } as any
+    ];
+    
+    // Use mock data if real courts are empty (backend not running)
+    const displayCourts = courts.length > 0 ? courts : mockCourts;
 
+    const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const [selectedSlot, setSelectedSlot] = useState<{ start_time: string, end_time: string } | null>(null);
     const [bookingResult, setBookingResult] = useState<Booking | null>(null);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-    const hasTerms = !!(setting?.booking_terms);
+    const hasTerms = !!((setting as any)?.booking_terms);
 
     const form = useForm<BookingFormData>({
         resolver: zodResolver(bookingFormSchema),
         defaultValues: {
             branch_id: BRANCH_ID,
             court_id: undefined,
-            court_price: undefined,
             date: format(new Date(), "yyyy-MM-dd"),
             start_time: "",
             end_time: "",
@@ -62,14 +122,25 @@ export function BookingView() {
     });
 
     useEffect(() => {
-        fetchPublicCourts({ branch_id: BRANCH_ID });
-    }, [fetchPublicCourts]);
+        console.log('Fetching public branches...');
+        fetchPublicBranches().then(result => {
+            console.log('Branches fetch result:', result);
+        });
+    }, [fetchPublicBranches]);
+
+    useEffect(() => {
+        if (selectedBranch) {
+            console.log('Selected branch changed:', selectedBranch);
+            fetchPublicCourts({ branch_id: Number(selectedBranch.id) });
+            fetchPublicSettings({ branch_id: Number(selectedBranch.id) });
+        }
+    }, [selectedBranch, fetchPublicCourts, fetchPublicSettings]);
 
     // Fetch availability when court or date changes
     useEffect(() => {
-        if (selectedCourt && selectedDate) {
+        if (selectedCourt && selectedDate && selectedBranch) {
             fetchAvailability({
-                branch_id: BRANCH_ID,
+                branch_id: Number(selectedBranch.id),
                 court_id: Number(selectedCourt.id),
                 date: format(selectedDate, "yyyy-MM-dd")
             });
@@ -77,11 +148,7 @@ export function BookingView() {
             form.setValue("start_time", "");
             form.setValue("end_time", "");
         }
-    }, [selectedCourt, selectedDate, fetchAvailability, form]);
-
-    useEffect(() => {
-        fetchPublicSettings({ branch_id: BRANCH_ID });
-    }, [fetchPublicSettings, BRANCH_ID]);
+    }, [selectedCourt, selectedDate, selectedBranch, fetchAvailability, form]);
 
     const handleSlotSelect = (slot: { start_time: string, end_time: string }) => {
         setSelectedSlot(slot);
@@ -92,7 +159,11 @@ export function BookingView() {
     };
 
     const onSubmit = async (data: BookingFormData) => {
-        const res = await createBooking(data);
+        const bookingData = {
+            ...data,
+            branch_id: selectedBranch ? Number(selectedBranch.id) : BRANCH_ID,
+        };
+        const res = await createBooking(bookingData);
         const resData: any = res.data;
         if (res.success && resData?.data) {
             setBookingResult({
@@ -118,14 +189,54 @@ export function BookingView() {
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" noValidate>
 
-                    {/* Step 1 & 2: Court & Date */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
-                            <CardContent className="p-6">
-                                <h3 className="text-xl font-bold mb-6 flex items-center">
-                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">1</span>
-                                    {t("steps.chooseCourt")}
-                                </h3>
+                    {/* Step 1: Branch Selection */}
+                    <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                        <CardContent className="p-6">
+                            <h3 className="text-xl font-bold mb-6 flex items-center">
+                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">1</span>
+                                {t("steps.chooseBranch")}
+                            </h3>
+                            <Select
+                                onValueChange={(val) => {
+                                    const branch = branches.find(b => b.id === val);
+                                    setSelectedBranch(branch || null);
+                                    setSelectedCourt(null); // Reset court when branch changes
+                                    form.setValue("court_id", undefined as any); // Reset court in form
+                                }}
+                                value={selectedBranch?.id}
+                                disabled={branchesLoading}
+                            >
+                                <FormControl>
+                                    <SelectTrigger className="h-12">
+                                        <SelectValue placeholder={t("selectBranchPlaceholder")} />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {displayBranches.filter(b => b.active).map((branch) => (
+                                        <SelectItem key={branch.id} value={branch.id}>
+                                            <div className="flex flex-col">
+                                                <span>{branch.name}</span>
+                                                <span className="text-sm text-muted-foreground">{branch.address}</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </CardContent>
+                    </Card>
+
+                    {/* Step 2: Court Selection */}
+                    <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                        <CardContent className="p-6">
+                            <h3 className="text-xl font-bold mb-6 flex items-center">
+                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">2</span>
+                                {t("steps.chooseCourt")}
+                            </h3>
+                            {!selectedBranch ? (
+                                <div className="py-12 bg-muted/30 border border-dashed border-border/60 rounded-2xl flex flex-col items-center justify-center text-center">
+                                    <p className="text-muted-foreground">{t("selectBranchFirst")}</p>
+                                </div>
+                            ) : (
                                 <FormField
                                     control={form.control}
                                     name="court_id"
@@ -138,9 +249,9 @@ export function BookingView() {
                                                     field.onChange(courtId);
                                                     const court = courts.find(c => Number(c.id) === courtId);
                                                     setSelectedCourt(court || null);
-                                                    form.setValue("court_price", court ? Number(court.price_per_hour) : undefined);
                                                 }}
                                                 value={field.value ? String(field.value) : undefined}
+                                                disabled={courtsLoading}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="h-12">
@@ -148,20 +259,20 @@ export function BookingView() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {courts.filter(c => c.active).map((court) => (
+                                                    {displayCourts.filter(c => c.active).map((court) => (
                                                         <SelectItem key={court.id} value={court.id}>
                                                             <div className="flex flex-col">
                                                                 <span>{court.name} ({formatCurrency(court.price_per_hour)} {t("perHour")})</span>
-                                                                {court.perks && court.perks.length > 0 && (
+                                                                {(court as any).perks && (court as any).perks.length > 0 && (
                                                                     <div className="flex gap-1 mt-1">
-                                                                        {court.perks.filter(p => p.active).slice(0, 2).map((perk) => (
+                                                                        {(court as any).perks.filter((p: any) => p.active).slice(0, 2).map((perk: any) => (
                                                                             <span key={perk.id} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
                                                                                 {perk.name}
                                                                             </span>
                                                                         ))}
-                                                                        {court.perks.filter(p => p.active).length > 2 && (
+                                                                        {(court as any).perks.filter((p: any) => p.active).length > 2 && (
                                                                             <span className="text-xs text-muted-foreground">
-                                                                                {t("morePerks", { count: court.perks.filter(p => p.active).length - 2 })}
+                                                                                {t("morePerks", { count: (court as any).perks.filter((p: any) => p.active).length - 2 })}
                                                                             </span>
                                                                         )}
                                                                     </div>
@@ -175,24 +286,26 @@ export function BookingView() {
                                         </FormItem>
                                     )}
                                 />
-                            </CardContent>
-                        </Card>
+                            )}
+                        </CardContent>
+                    </Card>
 
-                        {/* Court Perks Display */}
-                        {selectedCourt && selectedCourt.perks && selectedCourt.perks.length > 0 && (
-                            <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
-                                <CardContent className="p-6">
-                                    <CourtPerksDisplay perks={selectedCourt.perks} />
-                                </CardContent>
-                            </Card>
-                        )}
-
+                    {/* Court Perks Display */}
+                    {selectedCourt && (selectedCourt as any).perks && (selectedCourt as any).perks.length > 0 && (
                         <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                             <CardContent className="p-6">
-                                <h3 className="text-xl font-bold mb-6 flex items-center">
-                                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">2</span>
-                                    {t("steps.selectDate")}
-                                </h3>
+                                <CourtPerksDisplay perks={(selectedCourt as any).perks} />
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Step 3: Date Selection */}
+                    <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                        <CardContent className="p-6">
+                            <h3 className="text-xl font-bold mb-6 flex items-center">
+                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">3</span>
+                                {t("steps.selectDate")}
+                            </h3>
 
                                 <div className="flex justify-center border rounded-xl overflow-hidden py-2 bg-background/50">
                                     <Calendar
@@ -223,13 +336,12 @@ export function BookingView() {
                                 <input type="hidden" {...form.register("date")} />
                             </CardContent>
                         </Card>
-                    </div>
 
-                    {/* Step 3: Select Time */}
+                    {/* Step 4: Select Time */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                         <CardContent className="p-6">
                             <h3 className="text-xl font-bold mb-6 flex items-center">
-                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">3</span>
+                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">4</span>
                                 {t("steps.availableSlots")}
                             </h3>
 
@@ -253,11 +365,11 @@ export function BookingView() {
                         </CardContent>
                     </Card>
 
-                    {/* Step 4: User Info */}
+                    {/* Step 5: User Info */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                         <CardContent className="p-6">
                             <h3 className="text-xl font-bold mb-6 flex items-center">
-                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">4</span>
+                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">5</span>
                                 {t("steps.yourInfo")}
                             </h3>
 
@@ -310,7 +422,7 @@ export function BookingView() {
                         </CardContent>
                     </Card>
 
-                    {/* Step 5: Promo Code */}
+                    {/* Step 6: Promo Code */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                         <CardContent className="p-6">
                             <PromoCodeInput
@@ -323,41 +435,49 @@ export function BookingView() {
 
                     {/* Terms & Conditions */}
                     {hasTerms && (
-                        <div className="flex items-start space-x-3">
-                            <Checkbox
-                                id="terms"
-                                checked={acceptedTerms}
-                                onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
-                            />
-                            <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
-                                {t("termsPrefix")}{" "}
-                                <BookingTermsDialog
-                                    terms={setting?.booking_terms ?? null}
-                                    trigger={
-                                        <button type="button" className="inline-flex items-center gap-1 text-primary underline underline-offset-2 hover:text-primary/80">
-                                            <FileText className="h-3.5 w-3.5" />
-                                            {t("termsLink")}
-                                        </button>
-                                    }
-                                />
-                            </label>
-                        </div>
+                        <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                            <CardContent className="p-6">
+                                <div className="flex items-start space-x-3">
+                                    <Checkbox
+                                        id="terms"
+                                        checked={acceptedTerms}
+                                        onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                                    />
+                                    <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
+                                        {t("termsPrefix")}{" "}
+                                        <BookingTermsDialog
+                                            terms={(setting as any)?.booking_terms ?? null}
+                                            trigger={
+                                                <button type="button" className="inline-flex items-center gap-1 text-primary underline underline-offset-2 hover:text-primary/80">
+                                                    <FileText className="h-3.5 w-3.5" />
+                                                    {t("termsLink")}
+                                                </button>
+                                            }
+                                        />
+                                    </label>
+                                </div>
+                            </CardContent>
+                        </Card>
                     )}
 
-                    <Button
-                        type="submit"
-                        disabled={bookingLoading || !selectedSlot || (hasTerms && !acceptedTerms)}
-                        className="w-full h-16 text-lg font-bold transition-all hover:-translate-y-0.5 active:translate-y-0"
-                    >
-                        {bookingLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                {t("processingBooking")}
-                            </>
-                        ) : (
-                            t("confirmBooking")
-                        )}
-                    </Button>
+                    <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                        <CardContent className="p-6">
+                            <Button
+                                type="submit"
+                                disabled={bookingLoading || !selectedSlot || !selectedBranch || (hasTerms && !acceptedTerms)}
+                                className="w-full h-16 text-lg font-bold transition-all hover:-translate-y-0.5 active:translate-y-0"
+                            >
+                                {bookingLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                        {t("processingBooking")}
+                                    </>
+                                ) : (
+                                    t("confirmBooking")
+                                )}
+                            </Button>
+                        </CardContent>
+                    </Card>
                 </form>
             </Form>
         </div>

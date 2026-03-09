@@ -26,7 +26,6 @@ export type Booking = z.infer<typeof bookingSchema>;
 export const bookingFormSchema = z.object({
     branch_id: z.number(),
     court_id: z.number(),
-    court_price: z.number().optional(),
     user_name: z.string().min(1, "Name is required"),
     user_phone: z.string().min(10, "Phone number is required"),
     date: z.string(),

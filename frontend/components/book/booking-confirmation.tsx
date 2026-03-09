@@ -56,7 +56,7 @@ export function BookingConfirmation({
         <CardHeader className="bg-muted/40 border-b border-border/40 pb-6 pt-6 px-8">
           <div className="flex justify-between items-center">
             <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              {t("orderLabel")} #{booking.id.padStart(5, "0")}
+              {t("orderLabel")} #{String(booking.id).padStart(5, "0")}
             </span>
             <Badge
               variant="secondary"

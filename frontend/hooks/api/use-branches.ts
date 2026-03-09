@@ -109,6 +109,42 @@ export function useBranchesAPI() {
         }
     };
 
+    const fetchPublicBranches = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await api.get("/api/branches");
+            if (response.data?.data) {
+                setBranches(response.data.data.map(flattenResource));
+            }
+            return { success: true };
+        } catch (err: any) {
+            setError(err.response?.data?.error || "Failed to fetch branches");
+            return { success: false, error: err };
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const fetchPublicBranch = useCallback(async (id: string) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await api.get(`/api/branches/${id}`);
+            if (response.data?.data) {
+                const flatBranch = flattenResource(response.data.data);
+                setBranch(flatBranch);
+                return { success: true, data: flatBranch };
+            }
+            return { success: false };
+        } catch (err: any) {
+            setError(err.response?.data?.error || "Failed to fetch branch");
+            return { success: false, error: err };
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     return {
         branches,
         branch,
@@ -120,5 +156,7 @@ export function useBranchesAPI() {
         createBranch,
         updateBranch,
         deleteBranch,
+        fetchPublicBranches,
+        fetchPublicBranch,
     };
 }

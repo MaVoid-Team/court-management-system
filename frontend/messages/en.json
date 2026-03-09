@@ -336,6 +336,7 @@
     "title": "Book a Court",
     "subtitle": "Select your preferred court, date, and time slot to play.",
     "steps": {
+      "chooseBranch": "Select Branch",
       "chooseCourt": "Choose Court",
       "selectDate": "Select Date",
       "availableSlots": "Available Time Slots",
@@ -343,6 +344,8 @@
     },
     "courtLabel": "Court",
     "selectCourtPlaceholder": "Select a court",
+    "selectBranchPlaceholder": "Select a branch",
+    "selectBranchFirst": "Please select a branch first",
     "perHour": "/hr",
     "morePerks": "+{count} more",
     "selectCourtAndDate": "Please select a court and date to view availability.",

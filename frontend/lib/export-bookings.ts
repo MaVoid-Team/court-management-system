@@ -19,7 +19,7 @@ export const exportBookingsToExcel = ({ bookings, branches, courts }: ExportBook
         const court = courts.find(c => Number(c.id) === booking.court_id);
         
         return {
-            'Booking ID': booking.id.padStart(5, '0'),
+            'Booking ID': String(booking.id).padStart(5, '0'),
             'Customer Name': booking.user_name,
             'Customer Phone': booking.user_phone,
             'Branch': branch?.name || 'Unknown',
@@ -74,7 +74,7 @@ export const exportBookingsToCSV = ({ bookings, branches, courts }: ExportBookin
         const court = courts.find(c => Number(c.id) === booking.court_id);
         
         return {
-            'Booking ID': booking.id.padStart(5, '0'),
+            'Booking ID': String(booking.id).padStart(5, '0'),
             'Customer Name': booking.user_name,
             'Customer Phone': booking.user_phone,
             'Branch': branch?.name || 'Unknown',

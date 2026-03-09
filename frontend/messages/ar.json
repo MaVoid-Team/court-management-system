@@ -336,6 +336,7 @@
     "title": "احجز ملعبًا",
     "subtitle": "اختر الملعب والتاريخ ووقت اللعب المناسب لك.",
     "steps": {
+      "chooseBranch": "اختر الفرع",
       "chooseCourt": "اختر الملعب",
       "selectDate": "اختر التاريخ",
       "availableSlots": "الأوقات المتاحة",
@@ -343,6 +344,8 @@
     },
     "courtLabel": "الملعب",
     "selectCourtPlaceholder": "اختر ملعبًا",
+    "selectBranchPlaceholder": "اختر فرعًا",
+    "selectBranchFirst": "يرجى اختيار الفرع أولاً",
     "perHour": "/ساعة",
     "morePerks": "+{count} أخرى",
     "selectCourtAndDate": "يرجى اختيار ملعب وتاريخ لعرض الأوقات المتاحة.",
