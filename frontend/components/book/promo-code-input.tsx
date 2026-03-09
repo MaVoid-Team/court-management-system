@@ -9,17 +9,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Percent, X, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import { getDefaultBranchId } from "@/lib/branch";
 import { useTranslations } from "next-intl";
 import { formatCurrency } from "@/lib/format-currency";
 
 interface PromoCodeInputProps {
-    selectedCourt?: any;
+    branchId?: string;
+    selectedCourt?: { price_per_hour: string; [key: string]: unknown };
     startTime?: string;
     endTime?: string;
 }
 
-export function PromoCodeInput({ selectedCourt, startTime, endTime }: PromoCodeInputProps) {
+export function PromoCodeInput({ branchId, selectedCourt, startTime, endTime }: PromoCodeInputProps) {
     const t = useTranslations("promoInput");
     const form = useFormContext();
     const [promoCode, setPromoCode] = useState("");
@@ -28,7 +28,6 @@ export function PromoCodeInput({ selectedCourt, startTime, endTime }: PromoCodeI
     const [discountAmount, setDiscountAmount] = useState(0);
     
     const { validatePromoCode } = usePublicPromoCodesAPI();
-    const BRANCH_ID = getDefaultBranchId();
 
     // Calculate current total based on selected court and time
     const calculateCurrentTotal = () => {
@@ -65,9 +64,14 @@ export function PromoCodeInput({ selectedCourt, startTime, endTime }: PromoCodeI
             return;
         }
 
+        if (!branchId) {
+            toast.error(t("toasts.selectCourtAndTime"));
+            return;
+        }
+
         setIsValidating(true);
         try {
-            const result = await validatePromoCode(BRANCH_ID.toString(), {
+            const result = await validatePromoCode(branchId, {
                 code: promoCode.toUpperCase(),
                 total_amount: currentTotal,
             });
@@ -111,13 +115,13 @@ export function PromoCodeInput({ selectedCourt, startTime, endTime }: PromoCodeI
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                         className="flex-1"
-                        disabled={currentTotal <= 0}
+                        disabled={currentTotal <= 0 || !branchId}
                     />
                     <Button
                         type="button"
                         variant="outline"
                         onClick={handleValidatePromoCode}
-                        disabled={!promoCode.trim() || isValidating || currentTotal <= 0}
+                        disabled={!promoCode.trim() || isValidating || currentTotal <= 0 || !branchId}
                     >
                         {isValidating ? t("validating") : t("apply")}
                     </Button>

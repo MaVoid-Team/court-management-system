@@ -1,206 +1,166 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useTranslations } from "next-intl";
 import { animate, createScope, stagger } from "animejs";
 import { usePackagesAPI } from "@/hooks/api/use-packages";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "@/i18n/navigation";
+import Link from "next/link";
 import { formatCurrency } from "@/lib/format-currency";
 import { ArrowRight, PackageIcon } from "lucide-react";
-import { getDefaultBranchId } from "@/lib/branch";
 
 export function PackagesSection() {
-  const t = useTranslations("landing.packages");
-  const { packages, loading, error, fetchPublicPackages } = usePackagesAPI();
-  const root = useRef<HTMLElement>(null);
-  const scope = useRef<ReturnType<typeof createScope> | null>(null);
-  const animated = useRef(false);
-  const hasFetched = useRef(false);
-  const hasTriedFallback = useRef(false);
+    const { packages, loading, error, fetchPublicPackages } = usePackagesAPI();
+    const root = useRef<HTMLElement>(null);
+    const scope = useRef<ReturnType<typeof createScope> | null>(null);
+    const animated = useRef(false);
+    const hasTriedFallback = useRef(false);
 
-  useEffect(() => {
-    if (!hasFetched.current) {
-      const branchId = getDefaultBranchId();
-      console.log('Packages section - fetching with branch_id:', branchId);
-      fetchPublicPackages({ branch_id: branchId });
-      hasFetched.current = true;
-    }
-  }, [fetchPublicPackages]);
+    const defaultBranchId = (() => {
+        const raw = process.env.NEXT_PUBLIC_DEFAULT_BRANCH_ID;
+        const parsed = raw ? Number(raw) : NaN;
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+    })();
 
-  // Fallback: if no packages found for default branch, try fetching all packages
-  useEffect(() => {
-    if (!loading && !error && packages.length === 0 && hasFetched.current && !hasTriedFallback.current) {
-      console.log('No packages found for default branch, trying to fetch all packages...');
-      fetchPublicPackages({}); // No branch_id filter
-      hasTriedFallback.current = true;
-    }
-  }, [loading, error, packages.length, fetchPublicPackages]);
+    useEffect(() => {
+        hasTriedFallback.current = false;
+        fetchPublicPackages({ branch_id: defaultBranchId });
+    }, [fetchPublicPackages, defaultBranchId]);
 
-  useEffect(() => {
-    if (loading) return;
+    // Retry once without branch filtering when configured branch has no packages.
+    useEffect(() => {
+        if (loading || error || packages.length > 0 || hasTriedFallback.current || !defaultBranchId) return;
+        hasTriedFallback.current = true;
+        fetchPublicPackages();
+    }, [loading, error, packages.length, defaultBranchId, fetchPublicPackages]);
 
-    scope.current = createScope({ root }).add(() => {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting && !animated.current) {
-            animated.current = true;
+    useEffect(() => {
+        if (loading) return;
 
-            animate(".pkg-eyebrow", {
-              opacity: [0, 1],
-              translateY: [20, 0],
-              duration: 600,
-              easing: "easeOutExpo",
-            });
+        scope.current = createScope({ root }).add(() => {
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    if (entries[0].isIntersecting && !animated.current) {
+                        animated.current = true;
 
-            animate(".pkg-headline", {
-              opacity: [0, 1],
-              translateY: [30, 0],
-              duration: 800,
-              delay: 100,
-              easing: "easeOutExpo",
-            });
+                        animate(".pkg-eyebrow", {
+                            opacity: [0, 1],
+                            translateY: [20, 0],
+                            duration: 600,
+                            easing: "easeOutExpo",
+                        });
 
-            animate(".pkg-card", {
-              opacity: [0, 1],
-              translateY: [40, 0],
-              scale: [0.96, 1],
-              delay: stagger(70, { start: 300 }),
-              duration: 700,
-              easing: "easeOutExpo",
-            });
+                        animate(".pkg-headline", {
+                            opacity: [0, 1],
+                            translateY: [30, 0],
+                            duration: 800,
+                            delay: 100,
+                            easing: "easeOutExpo",
+                        });
 
-            observer.disconnect();
-          }
-        },
-        { threshold: 0.06 },
-      );
+                        animate(".pkg-card", {
+                            opacity: [0, 1],
+                            translateY: [40, 0],
+                            scale: [0.96, 1],
+                            delay: stagger(70, { start: 300 }),
+                            duration: 700,
+                            easing: "easeOutExpo",
+                        });
 
-      const section = document.getElementById("packages");
-      if (section) observer.observe(section);
-    });
+                        observer.disconnect();
+                    }
+                },
+                { threshold: 0.06 }
+            );
 
-    return () => scope.current?.revert();
-  }, [loading]);
+            const section = document.getElementById("packages");
+            if (section) observer.observe(section);
+        });
 
-  return (
-    <section
-      ref={root}
-      id="packages"
-      className="relative w-full py-24 overflow-hidden bg-muted/10 border-t border-border/40"
-    >
-      <div className="relative z-10 w-full px-8 md:px-16 lg:px-24">
-        <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div>
-            <p className="pkg-eyebrow opacity-0 text-xs font-bold uppercase tracking-[0.25em] text-primary mb-4">
-              {t("eyebrow")}
-            </p>
-            <h2 className="pkg-headline opacity-0 text-[clamp(2.5rem,5vw,4.5rem)] font-black tracking-[-0.03em] leading-none text-foreground">
-              {t("title")}
-            </h2>
-          </div>
-          {packages.length > 0 && (
-            <div className="pkg-headline opacity-0">
-              <Button asChild variant="outline">
-                <Link href="/package">{t("viewAll")}</Link>
-              </Button>
-            </div>
-          )}
-        </div>
+        return () => scope.current?.revert();
+    }, [loading]);
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="p-6 border border-border/50 rounded-2xl bg-card space-y-4"
-              >
-                <Skeleton className="h-6 w-1/3" />
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-8 w-1/2" />
-                <div className="pt-4 mt-4 border-t border-border/40">
-                  <Skeleton className="h-10 w-full rounded-md" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div className="p-8 border border-destructive/20 bg-destructive/5 rounded-2xl text-center">
-            <p className="text-destructive font-medium mb-2">
-              {t("failedToLoad")}
-            </p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Error: {error}
-            </p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                const branchId = getDefaultBranchId();
-                console.log('Retrying packages fetch with branch_id:', branchId);
-                fetchPublicPackages({ branch_id: branchId });
-              }}
-            >
-              {t("tryAgain")}
-            </Button>
-          </div>
-        ) : packages.length === 0 ? (
-          <div className="p-12 border border-border/50 bg-card rounded-2xl text-center">
-            <PackageIcon className="mx-auto h-10 w-10 text-muted-foreground mb-4 opacity-40" />
-            <p className="text-muted-foreground text-lg mb-2">{t("noPackages")}</p>
-            <p className="text-sm text-muted-foreground">
-              Debug: branch_id = {getDefaultBranchId()}, loading = {loading}, error = {error}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {packages.slice(0, 6).map((pkg) => (
-              <div
-                key={pkg.id}
-                className="pkg-card opacity-0 group flex flex-col justify-between p-6 border border-border/50 rounded-2xl bg-card hover:bg-muted/30 hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5"
-              >
-                <div>
-                  <div className="flex items-start justify-between mb-3 gap-3">
-                    <h3 className="text-xl font-bold tracking-tight leading-tight">
-                      {pkg.title}
-                    </h3>
-                    {!pkg.branch_id && (
-                      <Badge
-                        variant="outline"
-                        className="shrink-0 text-[10px] uppercase tracking-wider font-semibold"
-                      >
-                        {t("global")}
-                      </Badge>
+    return (
+        <section ref={root} id="packages" className="relative w-full py-24 overflow-hidden bg-muted/10 border-t border-border/40">
+            <div className="relative z-10 w-full px-8 md:px-16 lg:px-24">
+                <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
+                    <div>
+                        <p className="pkg-eyebrow opacity-0 text-xs font-bold uppercase tracking-[0.25em] text-primary mb-4">
+                            Save More
+                        </p>
+                        <h2 className="pkg-headline opacity-0 text-[clamp(2.5rem,5vw,4.5rem)] font-black tracking-[-0.03em] leading-none text-foreground">
+                            Court Packages
+                        </h2>
+                    </div>
+                    {packages.length > 0 && (
+                        <div className="pkg-headline opacity-0">
+                            <Button asChild variant="outline">
+                                <Link href="/package">View All Packages</Link>
+                            </Button>
+                        </div>
                     )}
-                  </div>
-                  {pkg.description && (
-                    <p className="text-sm text-muted-foreground mb-5 line-clamp-2 leading-relaxed">
-                      {pkg.description}
-                    </p>
-                  )}
-                  <div className="mb-6">
-                    <span className="text-3xl font-black">
-                      {formatCurrency(Number(pkg.price))}
-                    </span>
-                  </div>
                 </div>
-                <div className="pt-4 border-t border-border/40">
-                  <Button asChild className="w-full font-semibold group/btn">
-                    <Link
-                      href={`/book?package_id=${pkg.id}`}
-                      className="flex items-center gap-2"
-                    >
-                      {t("bookNow")}
-                      <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
+
+                {loading ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="p-6 border border-border/50 rounded-2xl bg-card space-y-4">
+                                <Skeleton className="h-6 w-1/3" />
+                                <Skeleton className="h-4 w-2/3" />
+                                <Skeleton className="h-8 w-1/2" />
+                                <div className="pt-4 mt-4 border-t border-border/40">
+                                    <Skeleton className="h-10 w-full rounded-md" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="p-8 border border-destructive/20 bg-destructive/5 rounded-2xl text-center">
+                        <p className="text-destructive font-medium mb-2">Failed to load packages.</p>
+                        <Button variant="outline" onClick={() => fetchPublicPackages({ branch_id: defaultBranchId })}>Try again</Button>
+                    </div>
+                ) : packages.length === 0 ? (
+                    <div className="p-12 border border-border/50 bg-card rounded-2xl text-center">
+                        <PackageIcon className="mx-auto h-10 w-10 text-muted-foreground mb-4 opacity-40" />
+                        <p className="text-muted-foreground text-lg">No packages available at the moment.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {packages.slice(0, 6).map((pkg) => (
+                            <div
+                                key={pkg.id}
+                                className="pkg-card opacity-0 group flex flex-col justify-between p-6 border border-border/50 rounded-2xl bg-card hover:bg-muted/30 hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5"
+                            >
+                                <div>
+                                    <div className="flex items-start justify-between mb-3 gap-3">
+                                        <h3 className="text-xl font-bold tracking-tight leading-tight">{pkg.title}</h3>
+                                        {!pkg.branch_id && (
+                                            <Badge variant="outline" className="shrink-0 text-[10px] uppercase tracking-wider font-semibold">
+                                                Global
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    {pkg.description && (
+                                        <p className="text-sm text-muted-foreground mb-5 line-clamp-2 leading-relaxed">{pkg.description}</p>
+                                    )}
+                                    <div className="mb-6">
+                                        <span className="text-3xl font-black">{formatCurrency(Number(pkg.price))}</span>
+                                    </div>
+                                </div>
+                                <div className="pt-4 border-t border-border/40">
+                                    <Button asChild className="w-full font-semibold group/btn">
+                                        <Link href={`/book?package_id=${pkg.id}`} className="flex items-center gap-2">
+                                            Book Now
+                                            <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
+                                        </Link>
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </section>
+    );
 }

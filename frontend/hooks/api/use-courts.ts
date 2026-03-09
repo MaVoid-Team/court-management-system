@@ -76,21 +76,15 @@ export function useCourtsAPI() {
         setError(null);
         try {
             const query = buildQueryString(params);
-            console.log('Fetching courts from:', `/api/courts${query}`);
             const response = await api.get(`/api/courts${query}`);
-            console.log('Raw courts response:', response.data);
 
             if (response.data?.data) {
-                console.log('Processing courts data:', response.data.data);
-                const flattenedCourts = response.data.data.map(flattenResource);
-                console.log('Flattened courts:', flattenedCourts);
-                setCourts(flattenedCourts);
+                setCourts(response.data.data.map(flattenResource));
             }
 
             setPagination(null);
             return { success: true };
         } catch (err: any) {
-            console.error('Courts fetch error:', err);
             setError(err.response?.data?.error || "Failed to fetch courts");
             return { success: false, error: err };
         } finally {

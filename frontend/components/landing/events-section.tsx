@@ -11,7 +11,6 @@ import { Link } from "@/i18n/navigation";
 import { formatCurrency } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
 import { CalendarIcon, UsersIcon } from "lucide-react";
-import { getDefaultBranchId } from "@/lib/branch";
 
 export function EventsSection() {
   const t = useTranslations("landing.events");
@@ -19,19 +18,24 @@ export function EventsSection() {
   const root = useRef<HTMLElement>(null);
   const scope = useRef<ReturnType<typeof createScope> | null>(null);
   const animated = useRef(false);
+  const hasTriedFallback = useRef(false);
+
+  const defaultBranchId = (() => {
+    const raw = process.env.NEXT_PUBLIC_DEFAULT_BRANCH_ID;
+    const parsed = raw ? Number(raw) : NaN;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  })();
 
   useEffect(() => {
-    const branchId = getDefaultBranchId();
-    console.log('Events section - fetching with branch_id:', branchId, 'upcoming: true');
-    fetchPublicEvents({ branch_id: branchId, upcoming: true });
-  }, [fetchPublicEvents]);
+    hasTriedFallback.current = false;
+    fetchPublicEvents({ branch_id: defaultBranchId, upcoming: true });
+  }, [fetchPublicEvents, defaultBranchId]);
 
-  // Fallback: if no events found for default branch, try fetching all events
+  // Retry once without filters to avoid infinite polling loops.
   useEffect(() => {
-    if (!loading && !error && events.length === 0) {
-      console.log('No events found for default branch, trying to fetch all events...');
-      fetchPublicEvents({ upcoming: true }); // No branch_id filter
-    }
+    if (loading || error || events.length > 0 || hasTriedFallback.current) return;
+    hasTriedFallback.current = true;
+    fetchPublicEvents();
   }, [loading, error, events.length, fetchPublicEvents]);
 
   useEffect(() => {
@@ -132,10 +136,8 @@ export function EventsSection() {
             <Button
               variant="outline"
               onClick={() => {
-                const branchId = getDefaultBranchId();
-                console.log('Retrying events fetch with branch_id:', branchId, 'upcoming: true');
                 fetchPublicEvents({
-                  branch_id: branchId,
+                  branch_id: defaultBranchId,
                   upcoming: true,
                 });
               }}
@@ -146,9 +148,6 @@ export function EventsSection() {
         ) : events.length === 0 ? (
           <div className="p-12 border border-border/50 bg-card rounded-2xl text-center">
             <p className="text-muted-foreground text-lg mb-2">{t("noEvents")}</p>
-            <p className="text-sm text-muted-foreground">
-              Debug: branch_id = {getDefaultBranchId()}, loading = {loading}, error = {error}
-            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCourtsAPI } from "@/hooks/api/use-courts";
 import { useAvailabilityAPI } from "@/hooks/api/use-availability";
@@ -17,44 +17,48 @@ import { CourtPerksDisplay } from "@/components/courts/court-perks-display";
 import { PromoCodeInput } from "@/components/book/promo-code-input";
 import { BookingTermsDialog } from "@/components/book/booking-terms-dialog";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, FileText } from "lucide-react";
+import { Loader2, FileText, MapPin, Clock, User, Phone, Tag, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
-import { getDefaultBranchId } from "@/lib/branch";
 import { useTranslations } from "next-intl";
 import { formatCurrency } from "@/lib/format-currency";
+import { toast } from "sonner";
 
 export function BookingView() {
     const t = useTranslations("publicBook");
-    const BRANCH_ID = getDefaultBranchId();
 
+    // API hooks
     const { branches, fetchPublicBranches, loading: branchesLoading } = useBranchesAPI();
     const { courts, fetchPublicCourts, loading: courtsLoading } = useCourtsAPI();
     const { availability, fetchAvailability, loading: availabilityLoading } = useAvailabilityAPI();
-    const { createBooking, loading: bookingLoading } = useBookingsAPI();
+    const { createBooking, loading: bookingLoading, error: bookingError } = useBookingsAPI();
     const { setting, fetchPublicSettings } = useSettingsAPI();
 
+    // Local state
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-    const [selectedSlot, setSelectedSlot] = useState<{ start_time: string, end_time: string } | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+    const [selectedSlot, setSelectedSlot] = useState<{ start_time: string; end_time: string } | null>(null);
     const [bookingResult, setBookingResult] = useState<Booking | null>(null);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
-    const hasTerms = !!((setting as any)?.booking_terms);
+    const bookingTerms = (setting as any)?.booking_terms as string | undefined;
+    const hasTerms = !!bookingTerms;
 
+    // Form setup
     const form = useForm<BookingFormData>({
         resolver: zodResolver(bookingFormSchema),
         defaultValues: {
-            branch_id: BRANCH_ID,
-            court_id: undefined,
-            date: format(new Date(), "yyyy-MM-dd"),
+            branch_id: 0,
+            court_id: 0,
+            date: "",
             start_time: "",
             end_time: "",
             user_name: "",
@@ -64,37 +68,78 @@ export function BookingView() {
         },
     });
 
+    // ── Data fetching ──
+
+    // Load branches on mount
     useEffect(() => {
         fetchPublicBranches();
     }, [fetchPublicBranches]);
 
+    // When branch changes → load courts + settings for that branch
     useEffect(() => {
         if (selectedBranch) {
-            console.log('Selected branch:', selectedBranch);
-            fetchPublicCourts({ branch_id: Number(selectedBranch.id) }).then(result => {
-                console.log('Courts fetch result:', result);
-                console.log('Courts data:', courts);
-            });
+            fetchPublicCourts({ branch_id: Number(selectedBranch.id) });
             fetchPublicSettings({ branch_id: Number(selectedBranch.id) });
         }
     }, [selectedBranch, fetchPublicCourts, fetchPublicSettings]);
 
-    // Fetch availability when court or date changes
+    // When court + date are selected → load availability
     useEffect(() => {
         if (selectedCourt && selectedDate && selectedBranch) {
             fetchAvailability({
                 branch_id: Number(selectedBranch.id),
                 court_id: Number(selectedCourt.id),
-                date: format(selectedDate, "yyyy-MM-dd")
+                date: format(selectedDate, "yyyy-MM-dd"),
             });
+            // Reset slot selection when court/date changes
             setSelectedSlot(null);
             form.setValue("start_time", "");
             form.setValue("end_time", "");
         }
     }, [selectedCourt, selectedDate, selectedBranch, fetchAvailability, form]);
 
-    const handleSlotSelect = (slot: { start_time: string, end_time: string }) => {
+    // ── Handlers ──
+
+    const handleBranchSelect = (branchId: string) => {
+        const branch = branches.find((b) => String(b.id) === branchId) || null;
+        setSelectedBranch(branch);
+        // Reset downstream selections
+        setSelectedCourt(null);
+        setSelectedDate(undefined);
+        setSelectedSlot(null);
+        setAcceptedTerms(false);
+        setSubmitError(null);
+        form.setValue("branch_id", branch ? Number(branch.id) : 0);
+        form.setValue("court_id", 0);
+        form.setValue("date", "");
+        form.setValue("start_time", "");
+        form.setValue("end_time", "");
+    };
+
+    const handleCourtSelect = (courtId: string) => {
+        const court = courts.find((c) => String(c.id) === courtId) || null;
+        setSelectedCourt(court);
+        // Reset time selections when court changes
+        setSelectedSlot(null);
+        setSubmitError(null);
+        form.setValue("court_id", court ? Number(court.id) : 0);
+        form.setValue("start_time", "");
+        form.setValue("end_time", "");
+    };
+
+    const handleDateSelect = (date: Date | undefined) => {
+        if (!date) return;
+        setSelectedDate(date);
+        setSelectedSlot(null);
+        setSubmitError(null);
+        form.setValue("date", format(date, "yyyy-MM-dd"));
+        form.setValue("start_time", "");
+        form.setValue("end_time", "");
+    };
+
+    const handleSlotSelect = (slot: { start_time: string; end_time: string }) => {
         setSelectedSlot(slot);
+        setSubmitError(null);
         form.setValue("start_time", slot.start_time);
         form.setValue("end_time", slot.end_time);
         form.clearErrors("start_time");
@@ -102,99 +147,142 @@ export function BookingView() {
     };
 
     const onSubmit = async (data: BookingFormData) => {
-        const bookingData = {
+        setSubmitError(null);
+        const bookingData: BookingFormData = {
             ...data,
-            branch_id: selectedBranch ? Number(selectedBranch.id) : BRANCH_ID,
+            branch_id: Number(selectedBranch!.id),
+            court_id: Number(selectedCourt!.id),
         };
+
         const res = await createBooking(bookingData);
-        const resData: any = res.data;
-        if (res.success && resData?.data) {
-            setBookingResult({
-                id: resData.data.id,
-                ...resData.data.attributes
-            });
+
+        if (res.success) {
+            const resData: any = res.data;
+            if (resData?.data) {
+                setBookingResult({
+                    id: resData.data.id,
+                    ...resData.data.attributes,
+                });
+                toast.success(t("bookingSuccess"));
+            }
+        } else {
+            const errMsg = (res as any).error?.response?.data?.errors?.[0]
+                || (res as any).error?.response?.data?.error
+                || t("bookingFailed");
+            setSubmitError(errMsg);
+            toast.error(errMsg);
         }
     };
 
+    // ── Derived values ──
+    const activeBranches = branches.filter((b) => b.active);
+    const activeCourts = courts.filter((c) => c.active);
+    const activePerks = selectedCourt?.perks?.filter((p) => p.active) || [];
+    const slots = availability?.available_slots || [];
+
+    const canSubmit =
+        !!selectedBranch &&
+        !!selectedCourt &&
+        !!selectedDate &&
+        !!selectedSlot &&
+        (!hasTerms || acceptedTerms) &&
+        !bookingLoading;
+
+    // ── Confirmation screen ──
     if (bookingResult) {
         return <BookingConfirmation booking={bookingResult} court={selectedCourt} />;
     }
 
+    // ── Step numbering helper ──
+    let stepNum = 0;
+    const nextStep = () => ++stepNum;
+
     return (
-        <div className="w-full max-w-4xl mx-auto">
+        <div className="w-full max-w-4xl mx-auto space-y-8">
+            {/* Header */}
             <div className="flex flex-col items-center text-center space-y-4 mb-12">
                 <h1 className="text-4xl md:text-5xl font-bold tracking-tight">{t("title")}</h1>
-                <p className="text-muted-foreground text-lg">
-                    {t("subtitle")}
-                </p>
+                <p className="text-muted-foreground text-lg">{t("subtitle")}</p>
             </div>
 
-            <Form {...form}>
+            <FormProvider {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" noValidate>
 
-                    {/* Step 1: Branch Selection */}
+                    {/* Step: Branch Selection */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
-                        <CardContent className="p-6">
-                            <h3 className="text-xl font-bold mb-6 flex items-center">
-                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">1</span>
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <StepBadge n={nextStep()} />
                                 {t("steps.chooseBranch")}
-                            </h3>
-                            <Select
-                                onValueChange={(val) => {
-                                    const branch = branches.find((b: any) => b.id === val);
-                                    setSelectedBranch(branch || null);
-                                    setSelectedCourt(null); // Reset court when branch changes
-                                    form.setValue("court_id", undefined as any); // Reset court in form
-                                }}
-                                value={selectedBranch?.id || ""}
-                                disabled={branchesLoading}
-                            >
-                                <FormControl>
-                                    <SelectTrigger className="h-12">
-                                        <SelectValue placeholder={branchesLoading ? "Loading..." : t("selectBranchPlaceholder")} />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {branches.filter((b: any) => b.active).map((branch: any) => (
-                                        <SelectItem key={branch.id} value={branch.id}>
-                                            <div className="flex flex-col">
-                                                <span>{branch.name}</span>
-                                                <span className="text-sm text-muted-foreground">{branch.address}</span>
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            <FormField
+                                control={form.control}
+                                name="branch_id"
+                                render={() => (
+                                    <FormItem>
+                                        <FormLabel className="flex items-center gap-2">
+                                            <MapPin className="w-4 h-4" />
+                                            {t("selectBranchPlaceholder")}
+                                        </FormLabel>
+                                        <Select
+                                            onValueChange={handleBranchSelect}
+                                            value={selectedBranch ? String(selectedBranch.id) : ""}
+                                            disabled={branchesLoading}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger className="h-12">
+                                                    <SelectValue placeholder={branchesLoading ? "Loading..." : t("selectBranchPlaceholder")} />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {activeBranches.map((branch) => (
+                                                    <SelectItem key={branch.id} value={String(branch.id)}>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium">{branch.name}</span>
+                                                            {branch.address && (
+                                                                <span className="text-sm text-muted-foreground">{branch.address}</span>
+                                                            )}
+                                                        </div>
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </CardContent>
                     </Card>
 
-                    {/* Step 2: Court Selection */}
+                    {/* Step: Court Selection */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
-                        <CardContent className="p-6">
-                            <h3 className="text-xl font-bold mb-6 flex items-center">
-                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">2</span>
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <StepBadge n={nextStep()} />
                                 {t("steps.chooseCourt")}
-                            </h3>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6">
                             {!selectedBranch ? (
-                                <div className="py-12 bg-muted/30 border border-dashed border-border/60 rounded-2xl flex flex-col items-center justify-center text-center">
-                                    <p className="text-muted-foreground">{t("selectBranchFirst")}</p>
+                                <EmptyState icon={<MapPin className="w-8 h-8" />} message={t("selectBranchFirst")} />
+                            ) : courtsLoading ? (
+                                <div className="flex justify-center py-12">
+                                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                                 </div>
+                            ) : activeCourts.length === 0 ? (
+                                <EmptyState icon={<AlertCircle className="w-8 h-8" />} message={t("noCourts")} />
                             ) : (
                                 <FormField
                                     control={form.control}
                                     name="court_id"
-                                    render={({ field }) => (
+                                    render={() => (
                                         <FormItem>
                                             <FormLabel>{t("courtLabel")}</FormLabel>
                                             <Select
-                                                onValueChange={(val) => {
-                                                    const courtId = Number(val);
-                                                    field.onChange(courtId);
-                                                    const court = courts.find(c => Number(c.id) === courtId);
-                                                    setSelectedCourt(court || null);
-                                                }}
-                                                value={field.value ? String(field.value) : ""}
-                                                disabled={courtsLoading}
+                                                onValueChange={handleCourtSelect}
+                                                value={selectedCourt ? String(selectedCourt.id) : ""}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="h-12">
@@ -202,27 +290,32 @@ export function BookingView() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {courts.filter((c: any) => c.active).map((court: any) => (
-                                                        <SelectItem key={court.id} value={court.id}>
-                                                            <div className="flex flex-col">
-                                                                <span>{court.name} ({formatCurrency(court.price_per_hour)} {t("perHour")})</span>
-                                                                {(court as any).perks && (court as any).perks.length > 0 && (
-                                                                    <div className="flex gap-1 mt-1">
-                                                                        {(court as any).perks.filter((p: any) => p.active).slice(0, 2).map((perk: any) => (
-                                                                            <span key={perk.id} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                                                                                {perk.name}
-                                                                            </span>
-                                                                        ))}
-                                                                        {(court as any).perks.filter((p: any) => p.active).length > 2 && (
-                                                                            <span className="text-xs text-muted-foreground">
-                                                                                {t("morePerks", { count: (court as any).perks.filter((p: any) => p.active).length - 2 })}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </SelectItem>
-                                                    ))}
+                                                    {activeCourts.map((court) => {
+                                                        const courtPerks = court.perks?.filter((p) => p.active) || [];
+                                                        return (
+                                                            <SelectItem key={court.id} value={String(court.id)}>
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-medium">
+                                                                        {court.name} ({formatCurrency(court.price_per_hour)} {t("perHour")})
+                                                                    </span>
+                                                                    {courtPerks.length > 0 && (
+                                                                        <div className="flex gap-1 mt-1">
+                                                                            {courtPerks.slice(0, 2).map((perk) => (
+                                                                                <span key={perk.id} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                                                                                    {perk.name}
+                                                                                </span>
+                                                                            ))}
+                                                                            {courtPerks.length > 2 && (
+                                                                                <span className="text-xs text-muted-foreground">
+                                                                                    +{courtPerks.length - 2} {t("morePerks", { count: courtPerks.length - 2 })}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </SelectItem>
+                                                        );
+                                                    })}
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -233,96 +326,97 @@ export function BookingView() {
                         </CardContent>
                     </Card>
 
-                    {/* Court Perks Display */}
-                    {selectedCourt && (selectedCourt as any).perks && (selectedCourt as any).perks.length > 0 && (
+                    {/* Court Perks Display (shown when court selected with active perks) */}
+                    {selectedCourt && activePerks.length > 0 && (
                         <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                            <CardHeader>
+                                <CardTitle className="flex items-center">
+                                    <Tag className="w-4 h-4 mr-2" />
+                                    {t("courtPerks")}
+                                </CardTitle>
+                            </CardHeader>
                             <CardContent className="p-6">
-                                <CourtPerksDisplay perks={(selectedCourt as any).perks} />
+                                <CourtPerksDisplay perks={activePerks} />
                             </CardContent>
                         </Card>
                     )}
 
-                    {/* Step 3: Date Selection */}
+                    {/* Step: Date Selection */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
-                        <CardContent className="p-6">
-                            <h3 className="text-xl font-bold mb-6 flex items-center">
-                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">3</span>
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <StepBadge n={nextStep()} />
                                 {t("steps.selectDate")}
-                            </h3>
-
-                                <div className="flex justify-center border rounded-xl overflow-hidden py-2 bg-background/50">
-                                    <Calendar
-                                        mode="single"
-                                        selected={selectedDate}
-                                        onSelect={(date) => {
-                                            if (date) {
-                                                setSelectedDate(date);
-                                                form.setValue("date", format(date, "yyyy-MM-dd"));
-                                            }
-                                        }}
-                                        disabled={{ before: new Date() }}
-                                        className="rounded-md"
-                                        classNames={{
-                                            head_cell: "text-muted-foreground w-9 font-normal text-[0.8rem]",
-                                            cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                                            day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-                                            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                                            day_today: "bg-accent text-accent-foreground",
-                                            day_outside: "day-outside text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
-                                            day_disabled: "text-muted-foreground opacity-50",
-                                            day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                                            day_hidden: "invisible",
-                                        }}
-                                    />
-                                </div>
-                                {/* Hidden input to track form validation */}
-                                <input type="hidden" {...form.register("date")} />
-                            </CardContent>
-                        </Card>
-
-                    {/* Step 4: Select Time */}
-                    <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                            </CardTitle>
+                        </CardHeader>
                         <CardContent className="p-6">
-                            <h3 className="text-xl font-bold mb-6 flex items-center">
-                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">4</span>
-                                {t("steps.availableSlots")}
-                            </h3>
-
                             {!selectedCourt ? (
-                                <div className="py-12 bg-muted/30 border border-dashed border-border/60 rounded-2xl flex flex-col items-center justify-center text-center">
-                                    <p className="text-muted-foreground">{t("selectCourtAndDate")}</p>
-                                </div>
+                                <EmptyState icon={<Clock className="w-8 h-8" />} message={t("selectCourtFirst")} />
                             ) : (
-                                <AvailabilityGrid
-                                    slots={availability?.available_slots || []}
-                                    selectedSlot={selectedSlot}
-                                    onSelect={handleSlotSelect}
-                                    isLoading={availabilityLoading}
-                                />
-                            )}
-                            {(form.formState.errors.start_time || form.formState.errors.end_time) && (
-                                <p className="text-[0.8rem] font-medium text-destructive mt-3">
-                                    {t("selectAvailableSlot")}
-                                </p>
+                                <>
+                                    <div className="flex justify-center border rounded-xl overflow-hidden py-2 bg-background/50">
+                                        <Calendar
+                                            mode="single"
+                                            selected={selectedDate}
+                                            onSelect={handleDateSelect}
+                                            disabled={{ before: new Date() }}
+                                            className="rounded-md"
+                                        />
+                                    </div>
+                                    <input type="hidden" {...form.register("date")} />
+                                </>
                             )}
                         </CardContent>
                     </Card>
 
-                    {/* Step 5: User Info */}
+                    {/* Step: Time Slot Selection */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <StepBadge n={nextStep()} />
+                                {t("steps.availableSlots")}
+                            </CardTitle>
+                        </CardHeader>
                         <CardContent className="p-6">
-                            <h3 className="text-xl font-bold mb-6 flex items-center">
-                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs mr-3">5</span>
-                                {t("steps.yourInfo")}
-                            </h3>
+                            {!selectedCourt || !selectedDate ? (
+                                <EmptyState icon={<Clock className="w-8 h-8" />} message={t("selectCourtAndDate")} />
+                            ) : (
+                                <div>
+                                    <AvailabilityGrid
+                                        slots={slots}
+                                        selectedSlot={selectedSlot}
+                                        onSelect={handleSlotSelect}
+                                        isLoading={availabilityLoading}
+                                    />
+                                    {(form.formState.errors.start_time || form.formState.errors.end_time) && (
+                                        <p className="text-[0.8rem] font-medium text-destructive mt-3">
+                                            {t("selectAvailableSlot")}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
 
+                    {/* Step: User Information */}
+                    <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <StepBadge n={nextStep()} />
+                                {t("steps.yourInfo")}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <FormField
                                     control={form.control}
                                     name="user_name"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>{t("fullNameLabel")}</FormLabel>
+                                            <FormLabel className="flex items-center gap-2">
+                                                <User className="w-4 h-4" />
+                                                {t("fullNameLabel")}
+                                            </FormLabel>
                                             <FormControl>
                                                 <Input placeholder={t("fullNamePlaceholder")} className="h-12" {...field} />
                                             </FormControl>
@@ -335,7 +429,10 @@ export function BookingView() {
                                     name="user_phone"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>{t("phoneLabel")}</FormLabel>
+                                            <FormLabel className="flex items-center gap-2">
+                                                <Phone className="w-4 h-4" />
+                                                {t("phoneLabel")}
+                                            </FormLabel>
                                             <FormControl>
                                                 <Input placeholder={t("phonePlaceholder")} className="h-12" {...field} />
                                             </FormControl>
@@ -365,50 +462,80 @@ export function BookingView() {
                         </CardContent>
                     </Card>
 
-                    {/* Step 6: Promo Code */}
+                    {/* Step: Promo Code */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <StepBadge n={nextStep()} />
+                                {t("promoCode")}
+                            </CardTitle>
+                        </CardHeader>
                         <CardContent className="p-6">
                             <PromoCodeInput
-                                selectedCourt={selectedCourt}
+                                branchId={selectedBranch ? String(selectedBranch.id) : undefined}
+                                selectedCourt={selectedCourt ?? undefined}
                                 startTime={selectedSlot?.start_time}
                                 endTime={selectedSlot?.end_time}
                             />
                         </CardContent>
                     </Card>
 
-                    {/* Terms & Conditions */}
+                    {/* Terms and Conditions */}
                     {hasTerms && (
                         <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
-                            <CardContent className="p-6">
-                                <div className="flex items-start space-x-3">
+                            <CardHeader>
+                                <CardTitle className="flex items-center">
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    {t("termsAndConditions")}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-6 space-y-4">
+                                <div className="flex items-start gap-3">
                                     <Checkbox
                                         id="terms"
                                         checked={acceptedTerms}
-                                        onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                                        onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
                                     />
-                                    <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
-                                        {t("termsPrefix")}{" "}
-                                        <BookingTermsDialog
-                                            terms={(setting as any)?.booking_terms ?? null}
-                                            trigger={
-                                                <button type="button" className="inline-flex items-center gap-1 text-primary underline underline-offset-2 hover:text-primary/80">
-                                                    <FileText className="h-3.5 w-3.5" />
-                                                    {t("termsLink")}
-                                                </button>
-                                            }
-                                        />
-                                    </label>
+                                    <div className="flex flex-col gap-1">
+                                        <label
+                                            htmlFor="terms"
+                                            className="text-sm font-medium leading-none cursor-pointer"
+                                        >
+                                            {t("termsPrefix")}{" "}
+                                            <BookingTermsDialog
+                                                terms={bookingTerms!}
+                                                trigger={
+                                                    <button type="button" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                                                        {t("termsLink")}
+                                                    </button>
+                                                }
+                                            />
+                                        </label>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
                     )}
 
+                    {/* Submit Error */}
+                    {submitError && (
+                        <Card className="border-destructive/50 bg-destructive/5">
+                            <CardContent className="p-4">
+                                <div className="flex items-center gap-3 text-destructive">
+                                    <AlertCircle className="w-5 h-5 shrink-0" />
+                                    <p className="text-sm font-medium">{submitError}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Submit Button */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                         <CardContent className="p-6">
                             <Button
                                 type="submit"
-                                disabled={bookingLoading || !selectedSlot || !selectedBranch || (hasTerms && !acceptedTerms)}
-                                className="w-full h-16 text-lg font-bold transition-all hover:-translate-y-0.5 active:translate-y-0"
+                                className="w-full h-14 text-lg font-semibold"
+                                disabled={!canSubmit}
                             >
                                 {bookingLoading ? (
                                     <>
@@ -422,7 +549,26 @@ export function BookingView() {
                         </CardContent>
                     </Card>
                 </form>
-            </Form>
+            </FormProvider>
+        </div>
+    );
+}
+
+// ── Sub-components ──
+
+function StepBadge({ n }: { n: number }) {
+    return (
+        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-semibold mr-3 shrink-0">
+            {n}
+        </div>
+    );
+}
+
+function EmptyState({ icon, message }: { icon: React.ReactNode; message: string }) {
+    return (
+        <div className="py-12 bg-muted/30 border border-dashed border-border/60 rounded-2xl flex flex-col items-center justify-center text-center">
+            <div className="text-muted-foreground mb-4">{icon}</div>
+            <p className="text-muted-foreground">{message}</p>
         </div>
     );
 }

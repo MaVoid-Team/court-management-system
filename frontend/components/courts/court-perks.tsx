@@ -39,10 +39,7 @@ export function CourtPerks({ courtId, courtName }: CourtPerksProps) {
     });
 
     useEffect(() => {
-        // Only load perks if we're in the admin context (not during booking)
-        if (typeof window !== 'undefined' && window.location.pathname.includes('/admin/')) {
-            loadPerks();
-        }
+        loadPerks();
     }, [courtId]);
 
     const loadPerks = async () => {

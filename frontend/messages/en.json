@@ -293,21 +293,12 @@
     "totalLabel": "Total Amount",
     "free": "Free",
     "notesLabel": "Notes",
-    "promoCodeLabel": "Promo Code Applied",
+    "promoCodeLabel": "Applied Promo Code",
+    "promoCode": "Promo Code",
+    "promoCodePlaceholder": "Enter promo code",
+    "promoCodeDescription": "Have a promo code? Enter it here to get a discount on your booking.",
     "returnHome": "Return Home",
     "bookAnother": "Book Another Court"
-  },
-  "login": {
-    "title": "Admin Login",
-    "subtitle": "Enter your email and password to access the dashboard.",
-    "emailLabel": "Email",
-    "emailPlaceholder": "m@example.com",
-    "passwordLabel": "Password",
-    "loggingIn": "Logging in...",
-    "loginButton": "Log in",
-    "toast": {
-      "success": "Login successful"
-    }
   },
   "promoInput": {
     "label": "Promo Code (Optional)",
@@ -346,6 +337,7 @@
     "selectCourtPlaceholder": "Select a court",
     "selectBranchPlaceholder": "Select a branch",
     "selectBranchFirst": "Please select a branch first",
+    "courtPerks": "Court Perks",
     "perHour": "/hr",
     "morePerks": "+{count} more",
     "selectCourtAndDate": "Please select a court and date to view availability.",
@@ -356,10 +348,19 @@
     "phonePlaceholder": "+1234567890",
     "notesLabel": "Additional Notes (Optional)",
     "notesPlaceholder": "Any special requests or information you'd like to share with the court owner...",
+    "promoCode": "Promo Code",
+    "promoCodePlaceholder": "Enter promo code",
+    "promoCodeDescription": "Have a promo code? Enter it here to get a discount on your booking.",
     "processingBooking": "Processing Booking...",
     "confirmBooking": "Confirm Booking",
+    "bookingSuccess": "Your court has been booked successfully!",
+    "bookingFailed": "Something went wrong. Please try again.",
+    "selectCourtFirst": "Please select a court first.",
+    "noCourts": "No courts available for this branch.",
     "termsPrefix": "I agree to the",
-    "termsLink": "Terms & Conditions"
+    "termsLink": "Terms & Conditions",
+    "termsAndConditions": "Terms and Conditions",
+    "acceptTerms": "I agree to the {terms}"
   },
   "bookingTerms": {
     "title": "Booking Terms & Conditions",
