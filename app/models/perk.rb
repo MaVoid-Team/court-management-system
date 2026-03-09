@@ -1,7 +1,6 @@
 class Perk < ApplicationRecord
   belongs_to :court
-  has_many :court_perks, dependent: :destroy
-  
+
   validates :name, presence: true
   validates :court, presence: true
   validates :position, numericality: { greater_than_or_equal_to: 0 }
