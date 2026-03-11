@@ -1,15 +1,20 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { Branch } from "@/schemas/branch.schema";
 import { DataTable } from "@/components/shared/data-table";
 import { BranchFormDialog } from "./branch-form-dialog";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/format-date";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
-import { Percent } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { formatDate } from "@/lib/format-date";
+import { useAuthContext } from "@/contexts/auth-context";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface BranchTableProps {
     branches: Branch[];
@@ -19,54 +24,61 @@ interface BranchTableProps {
 }
 
 export function BranchTable({ branches, isLoading, onUpdate, onDelete }: BranchTableProps) {
-    const t = useTranslations("branches.table");
+    const { admin } = useAuthContext();
+    const isSuperAdmin = admin?.role === "super_admin";
+
     const columns = [
         {
-            header: t("nameHeader"),
+            header: "Name",
             accessorKey: "name" as keyof Branch,
             className: "font-medium",
         },
         {
-            header: t("addressHeader"),
+            header: "Address",
             accessorKey: "address" as keyof Branch,
         },
         {
-            header: t("timezoneHeader"),
+            header: "Timezone",
             accessorKey: "timezone" as keyof Branch,
         },
         {
-            header: t("statusHeader"),
+            header: "Status",
             cell: (b: Branch) => (
                 <Badge variant={b.active ? "default" : "secondary"}>
-                    {b.active ? t("active") : t("inactive")}
+                    {b.active ? "Active" : "Inactive"}
                 </Badge>
             ),
         },
         {
-            header: t("createdAtHeader"),
+            header: "Created At",
             cell: (b: Branch) => formatDate(b.created_at),
         },
         {
-            header: t("actionsHeader"),
+            header: "Actions",
             className: "text-right",
             cell: (b: Branch) => (
                 <div className="flex justify-end gap-2">
-                    <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                    >
-                        <Link href={`/promo-codes?branch_id=${b.id}`}>
-                            <Percent className="mr-2 h-4 w-4" />
-                            {t("promoCodes")}
-                        </Link>
-                    </Button>
                     <BranchFormDialog branch={b} onSubmit={(data) => onUpdate(b.id, data)} />
-                    <ConfirmDialog
-                        title={t("deleteTitle")}
-                        description={t("deleteDescription", { name: b.name })}
-                        onConfirm={() => onDelete(b.id)}
-                    />
+                    {isSuperAdmin ? (
+                        <ConfirmDialog
+                            title="Delete Branch"
+                            description={`Are you sure you want to delete ${b.name}? This will affect all courts and bookings in this branch.`}
+                            onConfirm={() => onDelete(b.id)}
+                        />
+                    ) : (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="destructive" size="icon" disabled>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Only super admins can delete branches</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
                 </div>
             ),
         },
@@ -77,8 +89,8 @@ export function BranchTable({ branches, isLoading, onUpdate, onDelete }: BranchT
             columns={columns}
             data={branches}
             isLoading={isLoading}
-            emptyStateTitle={t("emptyTitle")}
-            emptyStateDescription={t("emptyDescription")}
+            emptyStateTitle="No branches found"
+            emptyStateDescription="Add a new branch using the button above."
         />
     );
 }
