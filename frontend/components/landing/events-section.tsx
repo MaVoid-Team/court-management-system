@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { animate, createScope, stagger } from "animejs";
 import { useEventsAPI } from "@/hooks/api/use-events";
@@ -14,32 +14,29 @@ import { CalendarIcon, UsersIcon } from "lucide-react";
 
 export function EventsSection() {
   const t = useTranslations("landing.events");
-  const { events, loading, error, fetchPublicEvents } = useEventsAPI();
+  const { events, error, fetchPublicEvents } = useEventsAPI();
   const root = useRef<HTMLElement>(null);
   const scope = useRef<ReturnType<typeof createScope> | null>(null);
   const animated = useRef(false);
-  const hasTriedFallback = useRef(false);
-
-  const defaultBranchId = (() => {
-    const raw = process.env.NEXT_PUBLIC_DEFAULT_BRANCH_ID;
-    const parsed = raw ? Number(raw) : NaN;
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
-  })();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    hasTriedFallback.current = false;
-    fetchPublicEvents({ branch_id: defaultBranchId, upcoming: true });
-  }, [fetchPublicEvents, defaultBranchId]);
+    let cancelled = false;
+    setReady(false);
 
-  // Retry once without filters to avoid infinite polling loops.
-  useEffect(() => {
-    if (loading || error || events.length > 0 || hasTriedFallback.current) return;
-    hasTriedFallback.current = true;
-    fetchPublicEvents();
-  }, [loading, error, events.length, fetchPublicEvents]);
+    async function load() {
+      await fetchPublicEvents();
+      if (cancelled) return;
+
+      setReady(true);
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, [fetchPublicEvents]);
 
   useEffect(() => {
-    if (loading) return;
+    if (!ready) return;
 
     scope.current = createScope({ root }).add(() => {
       const observer = new IntersectionObserver(
@@ -81,8 +78,11 @@ export function EventsSection() {
       if (section) observer.observe(section);
     });
 
-    return () => scope.current?.revert();
-  }, [loading]);
+    return () => {
+      scope.current?.revert();
+      animated.current = false;
+    };
+  }, [ready]);
 
   return (
     <section
@@ -93,15 +93,15 @@ export function EventsSection() {
       <div className="relative z-10 w-full px-8 md:px-16 lg:px-24">
         <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div>
-            <p className="events-eyebrow opacity-0 text-xs font-bold uppercase tracking-[0.25em] text-primary mb-4">
+            <p className="events-eyebrow text-xs font-bold uppercase tracking-[0.25em] text-primary mb-4">
               {t("eyebrow")}
             </p>
-            <h2 className="events-headline opacity-0 text-[clamp(2.5rem,5vw,4.5rem)] font-black tracking-[-0.03em] leading-none text-foreground">
+            <h2 className="events-headline text-[clamp(2.5rem,5vw,4.5rem)] font-black tracking-[-0.03em] leading-none text-foreground">
               {t("title")}
             </h2>
           </div>
           {events.length > 0 && (
-            <div className="events-headline opacity-0">
+            <div className="events-headline">
               <Button asChild variant="outline">
                 <Link href="/event">{t("viewAll")}</Link>
               </Button>
@@ -109,7 +109,7 @@ export function EventsSection() {
           )}
         </div>
 
-        {loading ? (
+        {!ready ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
               <div
@@ -136,10 +136,8 @@ export function EventsSection() {
             <Button
               variant="outline"
               onClick={() => {
-                fetchPublicEvents({
-                  branch_id: defaultBranchId,
-                  upcoming: true,
-                });
+                setReady(false);
+                fetchPublicEvents().then(() => setReady(true));
               }}
             >
               {t("tryAgain")}
@@ -154,7 +152,7 @@ export function EventsSection() {
             {events.map((event) => (
               <div
                 key={event.id}
-                className="event-card opacity-0 group flex flex-col justify-between p-6 border border-border/50 rounded-2xl bg-card hover:border-primary/50 transition-colors duration-300"
+                className="event-card group flex flex-col justify-between p-6 border border-border/50 rounded-2xl bg-card hover:border-primary/50 transition-colors duration-300"
               >
                 <div>
                   <div className="flex items-start justify-between gap-4 mb-4">

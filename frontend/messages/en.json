@@ -300,6 +300,18 @@
     "returnHome": "Return Home",
     "bookAnother": "Book Another Court"
   },
+  "login": {
+    "title": "Admin Login",
+    "subtitle": "Enter your email and password to access the dashboard.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "m@example.com",
+    "passwordLabel": "Password",
+    "loggingIn": "Logging in...",
+    "loginButton": "Login",
+    "toast": {
+      "success": "Logged in successfully"
+    }
+  },
   "promoInput": {
     "label": "Promo Code (Optional)",
     "placeholder": "Enter promo code",
