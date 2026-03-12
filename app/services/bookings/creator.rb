@@ -28,6 +28,8 @@ module Bookings
       total_price = 0
       slot_ranges = []
 
+      hourly_rates = court.hourly_rates.active.ordered.to_a
+
       slots.each do |slot|
         s_time = parse_time(slot[:start_time])
         e_time = parse_time(slot[:end_time])
@@ -35,8 +37,9 @@ module Bookings
         return ServiceResult.failure("Slot end time must be after start time") if e_time <= s_time
         slot_ranges << (s_time...e_time)
         parsed_slots << { start_time: s_time, end_time: e_time }
-        total_hours += ((e_time - s_time) / 1.hour).ceil
-        total_price += court.calculate_price_for_period(s_time, e_time)
+        slot_hours = ((e_time - s_time) / 1.hour).ceil
+        total_hours += slot_hours
+        total_price += calculate_slot_price(s_time, e_time, court, hourly_rates)
       end
 
       # Check for overlaps within submitted slots
@@ -129,6 +132,19 @@ module Bookings
       Time.zone.parse(time_str.to_s)
     rescue ArgumentError, TypeError
       nil
+    end
+
+    def calculate_slot_price(start_time, end_time, court, hourly_rates)
+      total = 0
+      current = start_time
+      while current < end_time
+        hour = current.hour
+        rate = hourly_rates.find { |r| r.start_hour <= hour && r.end_hour > hour }
+        price = rate ? rate.price_per_hour : court.price_per_hour
+        total += price
+        current += 1.hour
+      end
+      total
     end
   end
 end
