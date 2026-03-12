@@ -12,14 +12,20 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { formatCurrency } from "@/lib/format-currency";
 
+interface Slot {
+    start_time: string;
+    end_time: string;
+}
+
 interface PromoCodeInputProps {
     branchId?: string;
     selectedCourt?: { price_per_hour: string; [key: string]: unknown };
+    selectedSlots?: Slot[];
     startTime?: string;
     endTime?: string;
 }
 
-export function PromoCodeInput({ branchId, selectedCourt, startTime, endTime }: PromoCodeInputProps) {
+export function PromoCodeInput({ branchId, selectedCourt, selectedSlots = [], startTime, endTime }: PromoCodeInputProps) {
     const t = useTranslations("promoInput");
     const form = useFormContext();
     const [promoCode, setPromoCode] = useState("");
@@ -29,17 +35,26 @@ export function PromoCodeInput({ branchId, selectedCourt, startTime, endTime }: 
     
     const { validatePromoCode } = usePublicPromoCodesAPI();
 
-    // Calculate current total based on selected court and time
+    // Calculate current total based on selected court and slots
     const calculateCurrentTotal = () => {
-        if (!selectedCourt || !startTime || !endTime) return 0;
-        
-        // Calculate hours properly
+        if (!selectedCourt) return 0;
+        const pricePerHour = Number(selectedCourt.price_per_hour) || 0;
+
+        // Multi-slot path
+        if (selectedSlots.length > 0) {
+            const totalHours = selectedSlots.reduce((sum, slot) => {
+                const start = new Date(`2000-01-01T${slot.start_time}:00`);
+                const end = new Date(`2000-01-01T${slot.end_time}:00`);
+                return sum + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+            }, 0);
+            return totalHours * pricePerHour;
+        }
+
+        // Legacy single-slot fallback
+        if (!startTime || !endTime) return 0;
         const start = new Date(`2000-01-01T${startTime}:00`);
         const end = new Date(`2000-01-01T${endTime}:00`);
         const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-        
-        // Get court price from selected court
-        const pricePerHour = Number(selectedCourt.price_per_hour) || 0;
         return hours * pricePerHour;
     };
 

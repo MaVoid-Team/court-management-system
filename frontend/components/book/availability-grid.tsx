@@ -12,12 +12,12 @@ interface Slot {
 
 interface AvailabilityGridProps {
     slots: Slot[];
-    selectedSlot: Slot | null;
-    onSelect: (slot: Slot) => void;
+    selectedSlots: Slot[];
+    onToggle: (slot: Slot) => void;
     isLoading?: boolean;
 }
 
-export function AvailabilityGrid({ slots, selectedSlot, onSelect, isLoading }: AvailabilityGridProps) {
+export function AvailabilityGrid({ slots, selectedSlots, onToggle, isLoading }: AvailabilityGridProps) {
     const t = useTranslations("availability");
     if (isLoading) {
         return (
@@ -42,13 +42,14 @@ export function AvailabilityGrid({ slots, selectedSlot, onSelect, isLoading }: A
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {slots.map((slot) => {
-                const isSelected = selectedSlot?.start_time === slot.start_time;
+                const isSelected = selectedSlots.some(s => s.start_time === slot.start_time);
 
                 return (
                     <Button
                         key={slot.start_time}
                         variant="outline"
-                        onClick={() => onSelect(slot)}
+                        type="button"
+                        onClick={() => onToggle(slot)}
                         className={cn(
                             "relative flex flex-col items-center justify-center h-16 py-4 px-3 transition-all duration-200 group text-sm font-medium",
                             isSelected

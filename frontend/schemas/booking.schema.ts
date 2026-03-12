@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+export const bookingSlotSchema = z.object({
+    start_time: z.string(),
+    end_time: z.string(),
+});
+
+export type BookingSlot = z.infer<typeof bookingSlotSchema>;
+
 export const bookingSchema = z.object({
     id: z.string(),
     branch_id: z.number(),
@@ -17,6 +24,7 @@ export const bookingSchema = z.object({
     payment_status: z.enum(["pending", "paid", "refunded"]).nullable().optional(),
     notes: z.string().nullable().optional(),
     promo_code_id: z.string().nullable().optional(),
+    booking_slots: z.array(bookingSlotSchema).optional(),
     created_at: z.string(),
     updated_at: z.string(),
 });
@@ -28,20 +36,16 @@ export const bookingFormSchema = z.object({
     court_id: z.number(),
     user_name: z.string().min(1, "Name is required"),
     user_phone: z.string().min(10, "Phone number is required"),
-    date: z.string(),
-    start_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)"),
-    end_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)"),
+    date: z.string().min(1, "Date is required"),
+    start_time: z.string().optional(),
+    end_time: z.string().optional(),
+    booking_slots_attributes: z.array(z.object({
+        start_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
+        end_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
+    })).min(1, "At least one time slot is required"),
     notes: z.string().optional(),
     promo_code: z.string().optional(),
-}).refine(
-    (data) => {
-        return data.end_time > data.start_time;
-    },
-    {
-        message: "End time must be after start time",
-        path: ["end_time"],
-    }
-);
+});
 
 export type BookingFormData = z.infer<typeof bookingFormSchema>;
 

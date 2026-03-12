@@ -15,4 +15,13 @@ class BookingSerializer
   attribute :end_time do |booking|
     booking.end_time&.strftime("%H:%M")
   end
+
+  attribute :booking_slots do |booking|
+    booking.booking_slots.map do |slot|
+      {
+        start_time: slot.start_time.strftime("%H:%M"),
+        end_time: slot.end_time.strftime("%H:%M")
+      }
+    end
+  end
 end

@@ -101,9 +101,19 @@ export function BookingConfirmation({
                 <p className="text-sm font-medium text-muted-foreground mb-1">
                   {t("timeLabel")}
                 </p>
-                <p className="font-semibold">
-                  {booking.start_time} - {booking.end_time}
-                </p>
+                {(booking as any).booking_slots && (booking as any).booking_slots.length > 0 ? (
+                  <div className="space-y-1">
+                    {(booking as any).booking_slots.map((slot: any, idx: number) => (
+                      <p key={idx} className="font-semibold">
+                        {slot.start_time} - {slot.end_time}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="font-semibold">
+                    {booking.start_time} - {booking.end_time}
+                  </p>
+                )}
               </div>
             </div>
           </div>

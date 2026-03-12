@@ -20,7 +20,8 @@ module Api
     def booking_params
       params.require(:booking).permit(
         :court_id, :user_name, :user_phone,
-        :date, :start_time, :end_time, :notes, :promo_code
+        :date, :start_time, :end_time, :notes, :promo_code,
+        booking_slots_attributes: [:start_time, :end_time]
       )
     end
   end
