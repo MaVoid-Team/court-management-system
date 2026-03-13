@@ -46,6 +46,7 @@ services:
     env_file: .env
     volumes:
       - ./config/master.key:/app/config/master.key:ro
+      - storage_data:/app/storage
     environment:
       RAILS_ENV: production
       DB_HOST: postgres
@@ -75,6 +76,7 @@ services:
     env_file: .env
     volumes:
       - ./config/master.key:/app/config/master.key:ro
+      - storage_data:/app/storage
     environment:
       RAILS_ENV: production
       DB_HOST: postgres
@@ -98,3 +100,4 @@ volumes:
   postgres_data:
   redis_data:
   meilisearch_data:
+  storage_data:
