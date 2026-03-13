@@ -9,7 +9,12 @@ module Api
       ).call
 
       if result.success?
-        render json: BookingSerializer.new(result.data).serializable_hash, status: :created
+        booking = result.data
+        # Attach payment screenshot if provided
+        if params[:booking][:payment_screenshot].present?
+          booking.payment_screenshot.attach(params[:booking][:payment_screenshot])
+        end
+        render json: BookingSerializer.new(booking.reload).serializable_hash, status: :created
       else
         render json: { errors: result.errors }, status: :unprocessable_entity
       end

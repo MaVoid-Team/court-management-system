@@ -78,16 +78,42 @@ export function useBookingsAPI() {
     }, []);
 
     // Public endpoint
-    const createBooking = async (data: BookingFormData) => {
+    const createBooking = async (data: BookingFormData, paymentScreenshot?: File | null) => {
         setLoading(true);
         setError(null);
         try {
             const { branch_id, ...bookingData } = data;
-            const response = await api.post("/api/bookings", {
-                branch_id,
-                booking: bookingData
-            });
-            return { success: true, data: response.data };
+
+            if (paymentScreenshot) {
+                // Use multipart/form-data when a screenshot is provided
+                const formData = new FormData();
+                formData.append("branch_id", String(branch_id));
+
+                // Append booking fields
+                Object.entries(bookingData).forEach(([key, value]) => {
+                    if (key === "booking_slots_attributes" && Array.isArray(value)) {
+                        value.forEach((slot: { start_time: string; end_time: string }, idx: number) => {
+                            formData.append(`booking[booking_slots_attributes][${idx}][start_time]`, slot.start_time);
+                            formData.append(`booking[booking_slots_attributes][${idx}][end_time]`, slot.end_time);
+                        });
+                    } else if (value !== undefined && value !== null && value !== "") {
+                        formData.append(`booking[${key}]`, String(value));
+                    }
+                });
+
+                formData.append("booking[payment_screenshot]", paymentScreenshot);
+
+                const response = await api.post("/api/bookings", formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+                return { success: true, data: response.data };
+            } else {
+                const response = await api.post("/api/bookings", {
+                    branch_id,
+                    booking: bookingData,
+                });
+                return { success: true, data: response.data };
+            }
         } catch (err: any) {
             setError(err.response?.data?.error || err.response?.data?.errors?.[0] || "Failed to create booking");
             return { success: false, error: err };

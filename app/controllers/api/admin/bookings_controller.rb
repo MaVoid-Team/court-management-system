@@ -11,13 +11,13 @@ module Api
         bookings = apply_sort(bookings, { "date" => :date, "created_at" => :created_at }, { date: :desc })
 
         result = search_with_pagination(Booking, bookings, build_booking_filter)
-        render json: BookingSerializer.new(result).serializable_hash, status: :ok
+        render json: BookingSerializer.new(result, params: { url_options: default_url_options }).serializable_hash, status: :ok
       end
 
       def show
         booking = Booking.find(params[:id])
         authorize booking
-        render json: BookingSerializer.new(booking).serializable_hash, status: :ok
+        render json: BookingSerializer.new(booking, params: { url_options: default_url_options }).serializable_hash, status: :ok
       end
 
       def update
@@ -27,13 +27,13 @@ module Api
         if params[:cancel].present?
           result = Bookings::Canceller.new(booking: booking).call
           if result.success?
-            render json: BookingSerializer.new(result.data).serializable_hash, status: :ok
+            render json: BookingSerializer.new(result.data, params: { url_options: default_url_options }).serializable_hash, status: :ok
           else
             render json: { errors: result.errors }, status: :unprocessable_entity
           end
         else
           booking.update!(booking_update_params)
-          render json: BookingSerializer.new(booking).serializable_hash, status: :ok
+          render json: BookingSerializer.new(booking, params: { url_options: default_url_options }).serializable_hash, status: :ok
         end
       end
 
@@ -51,6 +51,14 @@ module Api
         parts << "date >= #{params[:from_date]}" if params[:from_date].present?
         parts << "date <= #{params[:to_date]}" if params[:to_date].present?
         build_meilisearch_filter(parts)
+      end
+
+      def default_url_options
+        {
+          host: request.host,
+          port: request.port,
+          protocol: request.protocol.chomp("://")
+        }
       end
     end
   end

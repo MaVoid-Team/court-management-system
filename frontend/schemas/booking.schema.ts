@@ -25,6 +25,7 @@ export const bookingSchema = z.object({
     notes: z.string().nullable().optional(),
     promo_code_id: z.string().nullable().optional(),
     booking_slots: z.array(bookingSlotSchema).optional(),
+    payment_screenshot_url: z.string().nullable().optional(),
     created_at: z.string(),
     updated_at: z.string(),
 });

@@ -14,6 +14,7 @@ class Booking < ApplicationRecord
   has_many :reviews, dependent: :destroy
   has_many :booking_slots, dependent: :destroy
   accepts_nested_attributes_for :booking_slots, allow_destroy: true
+  has_one_attached :payment_screenshot
 
   enum :status, { confirmed: 0, cancelled: 1 }
   enum :payment_status, { pending: 0, paid: 1, failed: 2, refunded: 3 }

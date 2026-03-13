@@ -18,6 +18,7 @@ import { MoreHorizontal, Banknote, Ban } from "lucide-react";
 import { formatDate } from "@/lib/format-date";
 import { formatTime } from "@/lib/format-time";
 import { formatCurrency } from "@/lib/format-currency";
+import { PaymentScreenshotViewer } from "@/components/bookings/payment-screenshot-viewer";
 
 interface BookingTableProps {
     bookings: Booking[];
@@ -106,6 +107,12 @@ export function BookingTable({ bookings, branches, courts, isLoading, onUpdatePa
                         {b.payment_status ? paymentStatusMap[b.payment_status].label : t("status.pending")}
                     </Badge>
                 </div>
+            ),
+        },
+        {
+            header: t("table.screenshotHeader"),
+            cell: (b: Booking) => (
+                <PaymentScreenshotViewer screenshotUrl={b.payment_screenshot_url} />
             ),
         },
         {

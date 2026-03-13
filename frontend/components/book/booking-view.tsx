@@ -16,6 +16,7 @@ import { BookingConfirmation } from "@/components/book/booking-confirmation";
 import { CourtPerksDisplay } from "@/components/courts/court-perks-display";
 import { PromoCodeInput } from "@/components/book/promo-code-input";
 import { BookingTermsDialog } from "@/components/book/booking-terms-dialog";
+import { PaymentScreenshotUpload } from "@/components/book/payment-screenshot-upload";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ export function BookingView() {
     const [bookingResult, setBookingResult] = useState<Booking | null>(null);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
 
     const bookingTerms = (setting as any)?.booking_terms as string | undefined;
     const hasTerms = !!bookingTerms;
@@ -169,7 +171,7 @@ export function BookingView() {
             end_time: slots[slots.length - 1]?.end_time,
         };
 
-        const res = await createBooking(bookingData);
+        const res = await createBooking(bookingData, paymentScreenshot);
 
         if (res.success) {
             const resData: any = res.data;
@@ -469,6 +471,11 @@ export function BookingView() {
                                 branchId={selectedBranch ? String(selectedBranch.id) : undefined}
                                 selectedCourt={selectedCourt ?? undefined}
                                 selectedSlots={selectedSlots}
+                            />
+
+                            <PaymentScreenshotUpload
+                                value={paymentScreenshot}
+                                onChange={setPaymentScreenshot}
                             />
 
                             {hasTerms && (
