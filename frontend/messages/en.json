@@ -377,6 +377,8 @@
     "screenshotLabel": "Payment Screenshot",
     "screenshotOptional": "Optional",
     "screenshotDescription": "Upload a screenshot of your payment transfer.",
+    "paymentInstructionsTitle": "How to Pay",
+    "paymentInstructionsBody": "Please send your payment to the number below, then upload a screenshot of the transfer above.",
     "screenshotRemove": "Remove",
     "screenshotDropzone": "Click or drag screenshot here",
     "screenshotFormats": "JPEG, PNG, WEBP (Max 5MB)",
@@ -523,6 +525,12 @@
         "label": "Terms and Conditions",
         "placeholder": "Enter your booking terms and conditions here. You can include rules, cancellation policies, payment terms, etc.",
         "description": "These terms will be displayed to users before they make a booking."
+      },
+      "payment": {
+        "title": "Payment Settings",
+        "numberLabel": "Payment Number",
+        "numberPlaceholder": "+201234567890",
+        "numberDescription": "The phone number users will send payments to. This number will be shown on the booking page with transfer instructions."
       },
       "actions": {
         "saving": "Saving...",

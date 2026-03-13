@@ -377,6 +377,8 @@
     "screenshotLabel": "إيصال الدفع",
     "screenshotOptional": "اختياري",
     "screenshotDescription": "يرجى إرفاق صورة من إيصال التحويل.",
+    "paymentInstructionsTitle": "طريقة الدفع",
+    "paymentInstructionsBody": "يرجى إرسال مبلغ الدفع على الرقم أدناه، ثم قم بتحميل صورة إيصال التحويل.",
     "screenshotRemove": "إزالة",
     "screenshotDropzone": "انقر أو اسحب الصورة هنا",
     "screenshotFormats": "JPEG, PNG, WEBP (كحد أقصى 5 م.ب)",
@@ -523,6 +525,12 @@
         "label": "الشروط والأحكام",
         "placeholder": "أدخل شروط وأحكام الحجز هنا. يمكنك تضمين القواعد وسياسات الإلغاء وشروط الدفع وغيرها.",
         "description": "سيتم عرض هذه الشروط على المستخدمين قبل إجراء الحجز."
+      },
+      "payment": {
+        "title": "إعدادات الدفع",
+        "numberLabel": "رقم الدفع",
+        "numberPlaceholder": "+201234567890",
+        "numberDescription": "رقم الهاتف الذي سيحول إليه المستخدمون مبالغ الدفع. سيظهر هذا الرقم على صفحة الحجز مع تعليمات التحويل."
       },
       "actions": {
         "saving": "جارٍ الحفظ...",

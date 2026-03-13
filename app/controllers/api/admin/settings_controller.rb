@@ -52,7 +52,7 @@ module Api
           :branch_id, :whatsapp_number,
           :contact_email, :contact_phone,
           :opening_hour, :closing_hour,
-          :booking_terms
+          :booking_terms, :payment_number
         )
       end
     end

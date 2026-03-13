@@ -5,7 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
-import { Loader2, MapPin, Clock, User, Phone, Tag, AlertCircle } from "lucide-react";
+import { Loader2, MapPin, Clock, User, Phone, Tag, AlertCircle, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
 import { useCourtsAPI } from "@/hooks/api/use-courts";
@@ -58,6 +58,7 @@ export function BookingView() {
 
     const bookingTerms = (setting as any)?.booking_terms as string | undefined;
     const hasTerms = !!bookingTerms;
+    const paymentNumber = (setting as any)?.payment_number as string | undefined;
 
     const form = useForm<BookingFormData>({
         resolver: zodResolver(bookingFormSchema),
@@ -483,6 +484,25 @@ export function BookingView() {
                                 selectedCourt={selectedCourt ?? undefined}
                                 selectedSlots={selectedSlots}
                             />
+
+                            {paymentNumber && (
+                                <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                                    <div className="w-9 h-9 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                                        <CreditCard className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                                            {t("paymentInstructionsTitle")}
+                                        </p>
+                                        <p className="text-sm text-amber-700/80 dark:text-amber-300/80">
+                                            {t("paymentInstructionsBody")}
+                                        </p>
+                                        <p className="text-lg font-bold tracking-wide text-amber-700 dark:text-amber-300 mt-1">
+                                            {paymentNumber}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
 
                             <PaymentScreenshotUpload
                                 value={paymentScreenshot}

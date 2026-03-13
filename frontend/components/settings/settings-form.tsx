@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Save } from "lucide-react";
+import { Save, Phone } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
     Select,
@@ -45,6 +45,7 @@ export function SettingsForm({ setting, loading, branches, selectedBranchId, onB
             opening_hour: 8,
             closing_hour: 22,
             booking_terms: "",
+            payment_number: "",
         },
     });
 
@@ -58,6 +59,7 @@ export function SettingsForm({ setting, loading, branches, selectedBranchId, onB
                 opening_hour: setting.opening_hour,
                 closing_hour: setting.closing_hour,
                 booking_terms: setting.booking_terms || "",
+                payment_number: setting.payment_number || "",
             });
         } else {
             form.reset({
@@ -68,6 +70,7 @@ export function SettingsForm({ setting, loading, branches, selectedBranchId, onB
                 opening_hour: 8,
                 closing_hour: 22,
                 booking_terms: "",
+                payment_number: "",
             });
         }
     }, [setting, selectedBranchId, form]);
@@ -116,6 +119,28 @@ export function SettingsForm({ setting, loading, branches, selectedBranchId, onB
                                 <Input id="contact_email" type="email" {...form.register("contact_email")} disabled={loading} placeholder={t("form.contactInfo.emailPlaceholder")} />
                                 {form.formState.errors.contact_email && <p className="text-xs text-destructive">{form.formState.errors.contact_email.message}</p>}
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4 pt-4 border-t border-border">
+                        <h3 className="text-lg font-medium leading-none">{t("form.payment.title")}</h3>
+                        <div className="space-y-2">
+                            <Label htmlFor="payment_number" className="flex items-center gap-2">
+                                <Phone className="w-4 h-4" />
+                                {t("form.payment.numberLabel")}
+                            </Label>
+                            <Input
+                                id="payment_number"
+                                {...form.register("payment_number")}
+                                disabled={loading}
+                                placeholder={t("form.payment.numberPlaceholder")}
+                            />
+                            {form.formState.errors.payment_number && (
+                                <p className="text-xs text-destructive">{form.formState.errors.payment_number.message}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                                {t("form.payment.numberDescription")}
+                            </p>
                         </div>
                     </div>
 
