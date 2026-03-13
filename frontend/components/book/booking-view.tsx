@@ -41,7 +41,7 @@ export function BookingView() {
 
     // API hooks
     const { branches, fetchPublicBranches, loading: branchesLoading } = useBranchesAPI();
-    const { courts, fetchPublicCourts, loading: courtsLoading } = useCourtsAPI();
+    const { courts, fetchPublicCourts, loading: courtsLoading, error: courtsError } = useCourtsAPI();
     const { availability, fetchAvailability, loading: availabilityLoading } = useAvailabilityAPI();
     const { createBooking, loading: bookingLoading, error: bookingError } = useBookingsAPI();
     const { setting, fetchPublicSettings } = useSettingsAPI();
@@ -258,11 +258,17 @@ export function BookingView() {
                                                 disabled={branchesLoading}
                                             >
                                                 <FormControl>
-                                                    <SelectTrigger className="h-10 w-full min-w-[180px] max-w-full">
-                                                        <SelectValue className="truncate whitespace-nowrap" placeholder={branchesLoading ? "Loading..." : t("selectBranchPlaceholder")} />
+                                                    <SelectTrigger className="h-10 w-full">
+                                                        <SelectValue placeholder={branchesLoading ? t("loading") : t("selectBranchPlaceholder")} />
                                                     </SelectTrigger>
                                                 </FormControl>
-                                                <SelectContent>
+                                                <SelectContent className="max-h-[300px]">
+                                                    {activeBranches.length === 0 && !branchesLoading && (
+                                                        <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                                                            <AlertCircle className="w-4 h-4 mx-auto mb-2" />
+                                                            {t("noBranchesAvailable")}
+                                                        </div>
+                                                    )}
                                                     {activeBranches.map((branch) => (
                                                         <SelectItem key={branch.id} value={String(branch.id)}>
                                                             <div className="flex flex-col">
@@ -292,11 +298,17 @@ export function BookingView() {
                                                 disabled={!selectedBranch || courtsLoading}
                                             >
                                                 <FormControl>
-                                                    <SelectTrigger className="h-10 w-full min-w-[180px] max-w-full">
-                                                        <SelectValue className="truncate whitespace-nowrap" placeholder={t("selectCourtPlaceholder")} />
+                                                    <SelectTrigger className="h-10 w-full">
+                                                        <SelectValue placeholder={courtsLoading ? t("loading") : !selectedBranch ? t("selectBranchFirst") : t("selectCourtPlaceholder")} />
                                                     </SelectTrigger>
                                                 </FormControl>
-                                                <SelectContent>
+                                                <SelectContent className="max-h-[300px]">
+                                                    {selectedBranch && activeCourts.length === 0 && !courtsLoading && (
+                                                        <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                                                            <AlertCircle className="w-4 h-4 mx-auto mb-2" />
+                                                            {t("noCourtsAvailable")}
+                                                        </div>
+                                                    )}
                                                     {activeCourts.map((court) => {
                                                         const courtPerks = court.perks?.filter((p) => p.active) || [];
                                                         return (
@@ -325,6 +337,12 @@ export function BookingView() {
                                                     })}
                                                 </SelectContent>
                                             </Select>
+                                            {courtsError && (
+                                                <p className="text-sm text-destructive mt-2 flex items-center gap-1">
+                                                    <AlertCircle className="w-4 h-4" />
+                                                    {courtsError}
+                                                </p>
+                                            )}
                                             <FormMessage />
                                         </FormItem>
                                     )}
