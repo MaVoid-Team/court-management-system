@@ -13,48 +13,32 @@ export function useBookingsAPI() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const flattenResource = (resource: any): Booking => ({
-        id: resource.id,
-        ...resource.attributes,
-    });
+    const flattenResource = (resource: any): Booking => ({ id: resource.id, ...resource.attributes });
 
-    const fetchBookings = useCallback(async (params?: {
-        branch_id?: number;
-        court_id?: number;
-        date?: string;
-        status?: string;
-        page?: number;
-        per_page?: number
-    }, options?: { skipStateUpdate?: boolean }) => {
-        if (!options?.skipStateUpdate) {
-            setLoading(true);
-        }
+    const fetchBookings = useCallback(async (
+        params?: { branch_id?: number; court_id?: number; date?: string; status?: string; page?: number; per_page?: number },
+        options?: { skipStateUpdate?: boolean }
+    ) => {
+        if (!options?.skipStateUpdate) setLoading(true);
         setError(null);
         try {
-            const query = buildQueryString(params);
-            const response = await api.get(`/api/admin/bookings${query}`);
-
-            const fetchedBookings = response.data?.data ? response.data.data.map(flattenResource) : [];
-            
+            const response = await api.get(`/api/admin/bookings${buildQueryString(params)}`);
+            const fetched = response.data?.data ? response.data.data.map(flattenResource) : [];
             if (!options?.skipStateUpdate) {
-                setBookings(fetchedBookings);
-
-                const totalCount = Number(response.headers["x-total-count"] || 0);
-                const page = Number(response.headers["x-page"] || 1);
-                const perPage = Number(response.headers["x-per-page"] || 25);
-                const totalPages = Number(response.headers["x-total-pages"] || 1);
-
-                setPagination({ totalCount, page, perPage, totalPages });
+                setBookings(fetched);
+                setPagination({
+                    totalCount:  Number(response.headers["x-total-count"]  || 0),
+                    page:        Number(response.headers["x-page"]         || 1),
+                    perPage:     Number(response.headers["x-per-page"]     || 25),
+                    totalPages:  Number(response.headers["x-total-pages"]  || 1),
+                });
             }
-            
-            return { success: true, data: fetchedBookings };
+            return { success: true, data: fetched };
         } catch (err: any) {
             setError(err.response?.data?.error || "Failed to fetch bookings");
             return { success: false, error: err };
         } finally {
-            if (!options?.skipStateUpdate) {
-                setLoading(false);
-            }
+            if (!options?.skipStateUpdate) setLoading(false);
         }
     }, []);
 
@@ -64,9 +48,9 @@ export function useBookingsAPI() {
         try {
             const response = await api.get(`/api/admin/bookings/${id}`);
             if (response.data?.data) {
-                const flatBooking = flattenResource(response.data.data);
-                setBooking(flatBooking);
-                return { success: true, data: flatBooking };
+                const flat = flattenResource(response.data.data);
+                setBooking(flat);
+                return { success: true, data: flat };
             }
             return { success: false };
         } catch (err: any) {
@@ -77,7 +61,6 @@ export function useBookingsAPI() {
         }
     }, []);
 
-    // Public endpoint
     const createBooking = async (data: BookingFormData, paymentScreenshot?: File | null) => {
         setLoading(true);
         setError(null);
@@ -85,11 +68,9 @@ export function useBookingsAPI() {
             const { branch_id, ...bookingData } = data;
 
             if (paymentScreenshot) {
-                // Use multipart/form-data when a screenshot is provided
                 const formData = new FormData();
                 formData.append("branch_id", String(branch_id));
 
-                // Append booking fields
                 Object.entries(bookingData).forEach(([key, value]) => {
                     if (key === "booking_slots_attributes" && Array.isArray(value)) {
                         value.forEach((slot: { start_time: string; end_time: string }, idx: number) => {
@@ -108,14 +89,12 @@ export function useBookingsAPI() {
                 });
                 return { success: true, data: response.data };
             } else {
-                const response = await api.post("/api/bookings", {
-                    branch_id,
-                    booking: bookingData,
-                });
+                const response = await api.post("/api/bookings", { branch_id, booking: bookingData });
                 return { success: true, data: response.data };
             }
         } catch (err: any) {
-            setError(err.response?.data?.error || err.response?.data?.errors?.[0] || "Failed to create booking");
+            const msg = err.response?.data?.errors?.[0] || err.response?.data?.error || "Failed to create booking";
+            setError(msg);
             return { success: false, error: err };
         } finally {
             setLoading(false);
@@ -150,16 +129,5 @@ export function useBookingsAPI() {
         }
     };
 
-    return {
-        bookings,
-        booking,
-        pagination,
-        loading,
-        error,
-        fetchBookings,
-        fetchBooking,
-        createBooking,
-        updatePaymentStatus,
-        cancelBooking,
-    };
+    return { bookings, booking, pagination, loading, error, fetchBookings, fetchBooking, createBooking, updatePaymentStatus, cancelBooking };
 }

@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { useTranslations } from "next-intl";
+import { Loader2, MapPin, Clock, User, Phone, Tag, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+
 import { useCourtsAPI } from "@/hooks/api/use-courts";
 import { useAvailabilityAPI } from "@/hooks/api/use-availability";
 import { useBookingsAPI } from "@/hooks/api/use-bookings";
@@ -11,6 +16,7 @@ import { useBranchesAPI } from "@/hooks/api/use-branches";
 import { bookingFormSchema, BookingFormData, Booking } from "@/schemas/booking.schema";
 import { Court } from "@/schemas/court.schema";
 import { Branch } from "@/schemas/branch.schema";
+
 import { AvailabilityGrid } from "@/components/book/availability-grid";
 import { BookingConfirmation } from "@/components/book/booking-confirmation";
 import { CourtPerksDisplay } from "@/components/courts/court-perks-display";
@@ -25,11 +31,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, FileText, MapPin, Clock, User, Phone, Tag, AlertCircle } from "lucide-react";
-import { format } from "date-fns";
-import { useTranslations } from "next-intl";
 import { formatCurrency } from "@/lib/format-currency";
-import { toast } from "sonner";
 
 interface Slot {
     start_time: string;
@@ -39,14 +41,12 @@ interface Slot {
 export function BookingView() {
     const t = useTranslations("publicBook");
 
-    // API hooks
     const { branches, fetchPublicBranches, loading: branchesLoading } = useBranchesAPI();
     const { courts, fetchPublicCourts, loading: courtsLoading, error: courtsError } = useCourtsAPI();
     const { availability, fetchAvailability, loading: availabilityLoading } = useAvailabilityAPI();
-    const { createBooking, loading: bookingLoading, error: bookingError } = useBookingsAPI();
+    const { createBooking, loading: bookingLoading } = useBookingsAPI();
     const { setting, fetchPublicSettings } = useSettingsAPI();
 
-    // Local state
     const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
     const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -59,7 +59,6 @@ export function BookingView() {
     const bookingTerms = (setting as any)?.booking_terms as string | undefined;
     const hasTerms = !!bookingTerms;
 
-    // Form setup
     const form = useForm<BookingFormData>({
         resolver: zodResolver(bookingFormSchema),
         defaultValues: {
@@ -96,68 +95,62 @@ export function BookingView() {
                 court_id: Number(selectedCourt.id),
                 date: format(selectedDate, "yyyy-MM-dd"),
             });
-            setSelectedSlots([]);
-            form.setValue("start_time", "");
-            form.setValue("end_time", "");
-            form.setValue("booking_slots_attributes", []);
+            clearSlots();
         }
-    }, [selectedCourt, selectedDate, selectedBranch, fetchAvailability, form]);
+    }, [selectedCourt, selectedDate, selectedBranch, fetchAvailability]);
+
+    // ── Helpers ──
+
+    const clearSlots = useCallback(() => {
+        setSelectedSlots([]);
+        form.setValue("start_time", "");
+        form.setValue("end_time", "");
+        form.setValue("booking_slots_attributes", []);
+    }, [form]);
 
     // ── Handlers ──
 
-    const handleBranchSelect = (branchId: string) => {
-        const branch = branches.find((b) => String(b.id) === branchId) || null;
+    const handleBranchSelect = useCallback((branchId: string) => {
+        const branch = branches.find((b) => String(b.id) === branchId) ?? null;
         setSelectedBranch(branch);
         setSelectedCourt(null);
         setSelectedDate(undefined);
-        setSelectedSlots([]);
         setAcceptedTerms(false);
         setSubmitError(null);
         form.setValue("branch_id", branch ? Number(branch.id) : 0);
         form.setValue("court_id", 0);
         form.setValue("date", "");
-        form.setValue("start_time", "");
-        form.setValue("end_time", "");
-        form.setValue("booking_slots_attributes", []);
-    };
+        clearSlots();
+    }, [branches, form, clearSlots]);
 
-    const handleCourtSelect = (courtId: string) => {
-        const court = courts.find((c) => String(c.id) === courtId) || null;
+    const handleCourtSelect = useCallback((courtId: string) => {
+        const court = courts.find((c) => String(c.id) === courtId) ?? null;
         setSelectedCourt(court);
-        setSelectedSlots([]);
         setSubmitError(null);
         form.setValue("court_id", court ? Number(court.id) : 0);
-        form.setValue("start_time", "");
-        form.setValue("end_time", "");
-        form.setValue("booking_slots_attributes", []);
-    };
+        clearSlots();
+    }, [courts, form, clearSlots]);
 
-    const handleDateSelect = (date: Date | undefined) => {
+    const handleDateSelect = useCallback((date: Date | undefined) => {
         if (!date) return;
         setSelectedDate(date);
-        setSelectedSlots([]);
         setSubmitError(null);
         form.setValue("date", format(date, "yyyy-MM-dd"));
-        form.setValue("start_time", "");
-        form.setValue("end_time", "");
-        form.setValue("booking_slots_attributes", []);
-    };
+        clearSlots();
+    }, [form, clearSlots]);
 
-    const handleSlotToggle = (slot: Slot) => {
+    const handleSlotToggle = useCallback((slot: Slot) => {
         setSubmitError(null);
         setSelectedSlots(prev => {
             const exists = prev.some(s => s.start_time === slot.start_time);
             const updated = exists
                 ? prev.filter(s => s.start_time !== slot.start_time)
                 : [...prev, slot].sort((a, b) => a.start_time.localeCompare(b.start_time));
-            form.setValue("booking_slots_attributes", updated.map(s => ({
-                start_time: s.start_time,
-                end_time: s.end_time,
-            })));
+            form.setValue("booking_slots_attributes", updated);
             form.clearErrors("booking_slots_attributes");
             return updated;
         });
-    };
+    }, [form]);
 
     const onSubmit = async (data: BookingFormData) => {
         setSubmitError(null);
@@ -166,7 +159,6 @@ export function BookingView() {
             ...data,
             branch_id: Number(selectedBranch!.id),
             court_id: Number(selectedCourt!.id),
-            // Flat fields for backward compat with deployed backend
             start_time: slots[0]?.start_time,
             end_time: slots[slots.length - 1]?.end_time,
         };
@@ -174,43 +166,37 @@ export function BookingView() {
         const res = await createBooking(bookingData, paymentScreenshot);
 
         if (res.success) {
-            const resData: any = res.data;
-            if (resData?.data) {
-                setBookingResult({
-                    id: resData.data.id,
-                    ...resData.data.attributes,
-                });
+            const raw = (res.data as any)?.data;
+            if (raw) {
+                setBookingResult({ id: raw.id, ...raw.attributes });
                 toast.success(t("bookingSuccess"));
             }
         } else {
-            const errMsg = (res as any).error?.response?.data?.errors?.[0]
-                || (res as any).error?.response?.data?.error
-                || t("bookingFailed");
+            const errMsg =
+                (res as any).error?.response?.data?.errors?.[0] ??
+                (res as any).error?.response?.data?.error ??
+                t("bookingFailed");
             setSubmitError(errMsg);
             toast.error(errMsg);
         }
     };
 
     // ── Derived values ──
-    const activeBranches = branches.filter((b) => b.active);
-    const activeCourts = courts.filter((c) => c.active);
-    const activePerks = selectedCourt?.perks?.filter((p) => p.active) || [];
-    const slots = availability?.available_slots || [];
 
-    // Calculate total hours and price for selected slots
+    const activeBranches = branches.filter((b) => b.active);
+    const activeCourts   = courts.filter((c) => c.active);
+    const activePerks    = selectedCourt?.perks?.filter((p) => p.active) ?? [];
+    const availableSlots = availability?.available_slots ?? [];
+
     const totalHours = selectedSlots.reduce((sum, slot) => {
         const start = new Date(`2000-01-01T${slot.start_time}:00`);
-        const end = new Date(`2000-01-01T${slot.end_time}:00`);
-        return sum + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+        const end   = new Date(`2000-01-01T${slot.end_time}:00`);
+        return sum + (end.getTime() - start.getTime()) / 3_600_000;
     }, 0);
 
-    const totalPrice = selectedCourt
-        ? totalHours * Number(selectedCourt.price_per_hour || 0)
+    const estimatedPrice = selectedCourt
+        ? totalHours * Number(selectedCourt.price_per_hour ?? 0)
         : 0;
-
-    // For promo code: pass first and last slot times
-    const firstSlot = selectedSlots.length > 0 ? selectedSlots[0] : null;
-    const lastSlot = selectedSlots.length > 0 ? selectedSlots[selectedSlots.length - 1] : null;
 
     const canSubmit =
         !!selectedBranch &&
@@ -221,13 +207,13 @@ export function BookingView() {
         !bookingLoading;
 
     // ── Confirmation screen ──
+
     if (bookingResult) {
         return <BookingConfirmation booking={bookingResult} court={selectedCourt} />;
     }
 
     return (
         <div className="w-full max-w-3xl mx-auto space-y-4">
-            {/* Header */}
             <div className="flex flex-col items-center text-center space-y-2 mb-8">
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{t("title")}</h1>
                 <p className="text-muted-foreground text-base">{t("subtitle")}</p>
@@ -236,7 +222,7 @@ export function BookingView() {
             <FormProvider {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
 
-                    {/* Branch & Court Selection */}
+                    {/* Step 1: Branch & Court */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                         <CardHeader>
                             <CardTitle>{t("steps.chooseCourt")}</CardTitle>
@@ -299,7 +285,15 @@ export function BookingView() {
                                             >
                                                 <FormControl>
                                                     <SelectTrigger className="h-10 w-full">
-                                                        <SelectValue placeholder={courtsLoading ? t("loading") : !selectedBranch ? t("selectBranchFirst") : t("selectCourtPlaceholder")} />
+                                                        <SelectValue
+                                                            placeholder={
+                                                                courtsLoading
+                                                                    ? t("loading")
+                                                                    : !selectedBranch
+                                                                        ? t("selectBranchFirst")
+                                                                        : t("selectCourtPlaceholder")
+                                                            }
+                                                        />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent className="max-h-[300px]">
@@ -310,23 +304,23 @@ export function BookingView() {
                                                         </div>
                                                     )}
                                                     {activeCourts.map((court) => {
-                                                        const courtPerks = court.perks?.filter((p) => p.active) || [];
+                                                        const perks = court.perks?.filter((p) => p.active) ?? [];
                                                         return (
                                                             <SelectItem key={court.id} value={String(court.id)}>
                                                                 <div className="flex flex-col">
                                                                     <span className="font-medium whitespace-nowrap">
                                                                         {court.name} ({formatCurrency(court.price_per_hour)} {t("perHour")})
                                                                     </span>
-                                                                    {courtPerks.length > 0 && (
+                                                                    {perks.length > 0 && (
                                                                         <div className="flex flex-wrap gap-1 mt-1">
-                                                                            {courtPerks.slice(0, 2).map((perk) => (
+                                                                            {perks.slice(0, 2).map((perk) => (
                                                                                 <span key={perk.id} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
                                                                                     {perk.name}
                                                                                 </span>
                                                                             ))}
-                                                                            {courtPerks.length > 2 && (
+                                                                            {perks.length > 2 && (
                                                                                 <span className="text-xs text-muted-foreground">
-                                                                                    +{courtPerks.length - 2} {t("morePerks", { count: courtPerks.length - 2 })}
+                                                                                    +{perks.length - 2} {t("morePerks", { count: perks.length - 2 })}
                                                                                 </span>
                                                                             )}
                                                                         </div>
@@ -351,7 +345,7 @@ export function BookingView() {
                         </CardContent>
                     </Card>
 
-                    {/* Court Perks Display */}
+                    {/* Court Perks */}
                     {selectedCourt && activePerks.length > 0 && (
                         <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                             <CardHeader>
@@ -366,7 +360,7 @@ export function BookingView() {
                         </Card>
                     )}
 
-                    {/* Date & Time Selection */}
+                    {/* Step 2: Date & Time */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                         <CardHeader>
                             <CardTitle>{t("steps.selectDate")}</CardTitle>
@@ -375,58 +369,57 @@ export function BookingView() {
                             {!selectedCourt ? (
                                 <EmptyState icon={<Clock className="w-8 h-8" />} message={t("selectCourtFirst")} />
                             ) : (
-                                <>
-                                    <div className="flex justify-center border rounded-xl overflow-hidden py-2 bg-background/50">
-                                        <Calendar
-                                            mode="single"
-                                            selected={selectedDate}
-                                            onSelect={handleDateSelect}
-                                            disabled={{ before: new Date() }}
-                                            className="rounded-md"
-                                        />
-                                    </div>
-                                    <input type="hidden" {...form.register("date")} />
-                                </>
+                                <div className="flex justify-center border rounded-xl overflow-hidden py-2 bg-background/50">
+                                    <Calendar
+                                        mode="single"
+                                        selected={selectedDate}
+                                        onSelect={handleDateSelect}
+                                        disabled={{ before: new Date() }}
+                                        className="rounded-md"
+                                    />
+                                </div>
                             )}
 
-                            <div>
-                                {!selectedCourt || !selectedDate ? (
-                                    <EmptyState icon={<Clock className="w-8 h-8" />} message={t("selectCourtAndDate")} />
-                                ) : (
-                                    <>
-                                        <AvailabilityGrid
-                                            slots={slots}
-                                            selectedSlots={selectedSlots}
-                                            onToggle={handleSlotToggle}
-                                            isLoading={availabilityLoading}
-                                        />
-                                        {selectedSlots.length > 0 && (
-                                            <div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="font-medium">
-                                                        {selectedSlots.length} {selectedSlots.length === 1 ? "slot" : "slots"} selected ({totalHours}h)
-                                                    </span>
-                                                    <span className="font-semibold text-primary">
-                                                        {formatCurrency(totalPrice)}
-                                                    </span>
-                                                </div>
-                                                <div className="mt-1 text-xs text-muted-foreground">
-                                                    {selectedSlots.map(s => `${s.start_time}–${s.end_time}`).join(", ")}
-                                                </div>
+                            <input type="hidden" {...form.register("date")} />
+
+                            {!selectedCourt || !selectedDate ? (
+                                <EmptyState icon={<Clock className="w-8 h-8" />} message={t("selectCourtAndDate")} />
+                            ) : (
+                                <>
+                                    <AvailabilityGrid
+                                        slots={availableSlots}
+                                        selectedSlots={selectedSlots}
+                                        onToggle={handleSlotToggle}
+                                        isLoading={availabilityLoading}
+                                    />
+
+                                    {selectedSlots.length > 0 && (
+                                        <div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm">
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-medium">
+                                                    {selectedSlots.length} {selectedSlots.length === 1 ? "slot" : "slots"} ({totalHours}h)
+                                                </span>
+                                                <span className="font-semibold text-primary">
+                                                    {formatCurrency(estimatedPrice)}
+                                                </span>
                                             </div>
-                                        )}
-                                        {form.formState.errors.booking_slots_attributes && (
-                                            <p className="text-[0.8rem] font-medium text-destructive mt-3">
-                                                {t("selectAvailableSlot")}
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                {selectedSlots.map(s => `${s.start_time}–${s.end_time}`).join(", ")}
                                             </p>
-                                        )}
-                                    </>
-                                )}
-                            </div>
+                                        </div>
+                                    )}
+
+                                    {form.formState.errors.booking_slots_attributes && (
+                                        <p className="text-[0.8rem] font-medium text-destructive mt-3">
+                                            {t("selectAvailableSlot")}
+                                        </p>
+                                    )}
+                                </>
+                            )}
                         </CardContent>
                     </Card>
 
-                    {/* Your Info + Promo + Terms + Submit */}
+                    {/* Step 3: Your Info */}
                     <Card className="border-border/50 bg-card/60 backdrop-blur-sm">
                         <CardHeader>
                             <CardTitle>{t("steps.yourInfo")}</CardTitle>
@@ -503,22 +496,17 @@ export function BookingView() {
                                         checked={acceptedTerms}
                                         onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
                                     />
-                                    <div className="flex flex-col gap-1">
-                                        <label
-                                            htmlFor="terms"
-                                            className="text-sm font-medium leading-none cursor-pointer"
-                                        >
-                                            {t("termsPrefix")} {" "}
-                                            <BookingTermsDialog
-                                                terms={bookingTerms!}
-                                                trigger={
-                                                    <button type="button" className="text-primary underline underline-offset-2 hover:text-primary/80">
-                                                        {t("termsLink")}
-                                                    </button>
-                                                }
-                                            />
-                                        </label>
-                                    </div>
+                                    <label htmlFor="terms" className="text-sm font-medium leading-none cursor-pointer">
+                                        {t("termsPrefix")}{" "}
+                                        <BookingTermsDialog
+                                            terms={bookingTerms!}
+                                            trigger={
+                                                <button type="button" className="text-primary underline underline-offset-2 hover:text-primary/80">
+                                                    {t("termsLink")}
+                                                </button>
+                                            }
+                                        />
+                                    </label>
                                 </div>
                             )}
 

@@ -2,21 +2,15 @@ module Api
   class BookingsController < BaseController
     def create
       branch = Branch.find(params[:branch_id])
-
-      result = Bookings::Creator.new(
-        params: booking_params,
-        branch: branch
-      ).call
+      result = Bookings::Creator.new(params: booking_params, branch: branch).call
 
       if result.success?
         booking = result.data
-        # Attach payment screenshot if provided
-        if params[:booking][:payment_screenshot].present?
-          booking.payment_screenshot.attach(params[:booking][:payment_screenshot])
-        end
+        screenshot = params.dig(:booking, :payment_screenshot)
+        booking.payment_screenshot.attach(screenshot) if screenshot.present?
         render json: BookingSerializer.new(booking.reload).serializable_hash, status: :created
       else
-        render json: { errors: result.errors }, status: :unprocessable_entity
+        render json: { errors: Array(result.errors) }, status: :unprocessable_entity
       end
     end
 
