@@ -13,7 +13,7 @@ module Bookings
       return ServiceResult.failure("Court is not active") unless court.active?
 
       slots_raw = @params[:booking_slots_attributes].presence || []
-      slots = slots_raw.is_a?(Hash) ? slots_raw.values : slots_raw
+      slots = slots_raw.is_a?(Array) ? slots_raw : slots_raw.values
       # Backward compat: if no slots array, build one from flat start/end_time
       if slots.empty? && @params[:start_time].present? && @params[:end_time].present?
         slots = [{ start_time: @params[:start_time], end_time: @params[:end_time] }]
