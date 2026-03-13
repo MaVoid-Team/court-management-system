@@ -32,6 +32,8 @@ RUN groupadd --system --gid 1000 rails && \
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build --chown=rails:rails /app /app
 
+RUN mkdir -p /app/storage && chown -R rails:rails /app/storage
+
 USER 1000:1000
 
 EXPOSE 3000

@@ -2,17 +2,22 @@ class Booking < ApplicationRecord
   include MeiliSearch::Rails
 
   meilisearch enqueue: true, raise_on_failure: false do
-    attribute :user_name, :user_phone, :branch_id, :court_id, :date, :status
-    searchable_attributes [:user_name, :user_phone]
+    attribute :user_name, :user_phone, :branch_id, :court_id, :date, :status, :notes
+    searchable_attributes [:user_name, :user_phone, :notes]
     filterable_attributes [:branch_id, :court_id, :date, :status]
   end
 
   belongs_to :branch
   belongs_to :court
+  belongs_to :promo_code, optional: true
   has_many :payments, dependent: :destroy
+  has_many :reviews, dependent: :destroy
+  has_many :booking_slots, dependent: :destroy
+  accepts_nested_attributes_for :booking_slots, allow_destroy: true
+  has_one_attached :payment_screenshot
 
   enum :status, { confirmed: 0, cancelled: 1 }
-  enum :payment_status, { pending: 0, paid: 1, failed: 2 }
+  enum :payment_status, { pending: 0, paid: 1, failed: 2, refunded: 3 }
 
   validates :user_name, presence: true
   validates :user_phone, presence: true

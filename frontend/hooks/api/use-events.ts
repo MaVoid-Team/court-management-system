@@ -47,19 +47,23 @@ export function useEventsAPI() {
     const fetchPublicEvents = useCallback(async (params?: { branch_id?: number; upcoming?: boolean; page?: number; per_page?: number }) => {
         setLoading(true);
         setError(null);
+        console.log('useEventsAPI - fetchPublicEvents called with params:', params);
         try {
             const query = buildQueryString(params);
             const response = await api.get(`/api/events${query}`);
+            console.log('useEventsAPI - response:', response);
 
-            if (response.data?.data) {
-                setEvents(response.data.data.map(flattenResource));
-            }
+            const evts = response.data?.data ? response.data.data.map(flattenResource) : [];
+            console.log('useEventsAPI - flattened events:', evts);
+            setEvents(evts);
 
-            setPagination(null); // Optional parsing
-            return { success: true };
+            setPagination(null);
+            return { success: true, data: evts };
         } catch (err: any) {
+            console.error('useEventsAPI - error:', err);
+            setEvents([]);
             setError(err.response?.data?.error || "Failed to fetch events");
-            return { success: false, error: err };
+            return { success: false, error: err, data: [] as Event[] };
         } finally {
             setLoading(false);
         }

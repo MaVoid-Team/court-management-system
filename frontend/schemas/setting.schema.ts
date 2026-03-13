@@ -8,6 +8,8 @@ export const settingSchema = z.object({
     contact_phone: z.string().nullable().optional(),
     opening_hour: z.number(),
     closing_hour: z.number(),
+    booking_terms: z.string().nullable().optional(),
+    payment_number: z.string().nullable().optional(),
     created_at: z.string(),
     updated_at: z.string(),
 });
@@ -21,6 +23,8 @@ export const settingFormSchema = z.object({
     contact_phone: z.string().optional(),
     opening_hour: z.number().min(0).max(23),
     closing_hour: z.number().min(0).max(24),
+    booking_terms: z.string().optional(),
+    payment_number: z.string().optional(),
 }).refine((data) => data.closing_hour > data.opening_hour, {
     message: "Closing hour must be after opening hour",
     path: ["closing_hour"],

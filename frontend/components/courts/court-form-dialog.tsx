@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Court, courtFormSchema, CourtFormData } from "@/schemas/court.schema";
@@ -35,6 +36,7 @@ interface CourtFormDialogProps {
 }
 
 export function CourtFormDialog({ court, branches = [], onSubmit }: CourtFormDialogProps) {
+    const t = useTranslations("courts");
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const isEdit = !!court;
@@ -88,29 +90,29 @@ export function CourtFormDialog({ court, branches = [], onSubmit }: CourtFormDia
                 ) : (
                     <Button data-testid="create-court-btn">
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Court
+                        {t("form.addButton")}
                     </Button>
                 )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{isEdit ? "Edit Court" : "Add Court"}</DialogTitle>
+                    <DialogTitle>{isEdit ? t("form.editTitle") : t("form.createTitle")}</DialogTitle>
                     <DialogDescription>
                         {isEdit
-                            ? "Update court details and pricing. Click save when you're done."
-                            : "Add a new court to a branch."}
+                            ? t("form.editDescription")
+                            : t("form.createDescription")}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="court-form" noValidate>
                     <div className="space-y-2">
-                        <Label htmlFor="branch_id">Branch</Label>
+                        <Label htmlFor="branch_id">{t("form.branchLabel")}</Label>
                         <Select
                             disabled={loading}
                             value={form.watch("branch_id") ? String(form.watch("branch_id")) : ""}
                             onValueChange={(val) => form.setValue("branch_id", Number(val))}
                         >
                             <SelectTrigger id="branch_id" data-testid="court-branch-select">
-                                <SelectValue placeholder="Select a branch" />
+                                <SelectValue placeholder={t("form.branchPlaceholder")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {branches.map((b) => (
@@ -126,10 +128,10 @@ export function CourtFormDialog({ court, branches = [], onSubmit }: CourtFormDia
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="name">Court Name</Label>
+                        <Label htmlFor="name">{t("form.nameLabel")}</Label>
                         <Input
                             id="name"
-                            placeholder="e.g. Court 1"
+                            placeholder={t("form.namePlaceholder")}
                             {...form.register("name")}
                             disabled={loading}
                             data-testid="court-name-input"
@@ -140,7 +142,7 @@ export function CourtFormDialog({ court, branches = [], onSubmit }: CourtFormDia
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="price_per_hour">Price per Hour (EGP)</Label>
+                        <Label htmlFor="price_per_hour">{t("form.priceLabel")}</Label>
                         <Input
                             id="price_per_hour"
                             type="number"
@@ -157,8 +159,8 @@ export function CourtFormDialog({ court, branches = [], onSubmit }: CourtFormDia
 
                     <div className="flex flex-row items-center justify-between rounded-lg border border-border p-3 shadow-sm">
                         <div className="space-y-0.5">
-                            <Label htmlFor="active">Active Status</Label>
-                            <p className="text-xs text-muted-foreground">Is this court available for booking?</p>
+                            <Label htmlFor="active">{t("form.activeStatusLabel")}</Label>
+                            <p className="text-xs text-muted-foreground">{t("form.activeStatusHelp")}</p>
                         </div>
                         <Switch
                             id="active"
@@ -171,10 +173,10 @@ export function CourtFormDialog({ court, branches = [], onSubmit }: CourtFormDia
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-                            Cancel
+                            {t("form.cancel")}
                         </Button>
                         <Button type="submit" disabled={loading} data-testid="court-submit-btn">
-                            {loading ? "Saving..." : "Save"}
+                            {loading ? t("form.saving") : t("form.save")}
                         </Button>
                     </DialogFooter>
                 </form>

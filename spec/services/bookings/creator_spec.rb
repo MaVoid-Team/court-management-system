@@ -93,5 +93,26 @@ RSpec.describe Bookings::Creator do
         expect(Booking.where(court: court, date: Date.tomorrow, status: :confirmed).count).to eq(1)
       end
     end
+
+    context "with hourly pricing ranges" do
+      it "uses range price when booking hour falls inside configured range" do
+        create(:court_hourly_rate, court: court, start_hour: 10, end_hour: 12, price_per_hour: 150.00)
+
+        result = subject.call
+
+        expect(result).to be_success
+        expect(result.data.total_price).to eq(300.00)
+      end
+
+      it "falls back to base court price for uncovered hours" do
+        create(:court_hourly_rate, court: court, start_hour: 10, end_hour: 11, price_per_hour: 150.00)
+
+        result = subject.call
+
+        expect(result).to be_success
+        # 10:00-11:00 custom(150) + 11:00-12:00 base(100)
+        expect(result.data.total_price).to eq(250.00)
+      end
+    end
   end
 end

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Event, eventFormSchema, EventFormData } from "@/schemas/event.schema";
@@ -34,6 +35,7 @@ interface EventFormDialogProps {
 }
 
 export function EventFormDialog({ event, branches = [], onSubmit }: EventFormDialogProps) {
+    const t = useTranslations("events.form");
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const isEdit = !!event;
@@ -94,29 +96,29 @@ export function EventFormDialog({ event, branches = [], onSubmit }: EventFormDia
                 ) : (
                     <Button data-testid="create-event-btn">
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Event
+                        {t("addButton")}
                     </Button>
                 )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>{isEdit ? "Edit Event" : "Add Event"}</DialogTitle>
+                    <DialogTitle>{isEdit ? t("editTitle") : t("createTitle")}</DialogTitle>
                     <DialogDescription>
                         {isEdit
-                            ? "Update tournament or special event details."
-                            : "Create a new event, tournament, or gathering."}
+                            ? t("editDescription")
+                            : t("createDescription")}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="event-form" noValidate>
                     <div className="space-y-2">
-                        <Label htmlFor="branch_id">Branch</Label>
+                        <Label htmlFor="branch_id">{t("branchLabel")}</Label>
                         <Select
                             disabled={loading}
                             value={form.watch("branch_id") ? String(form.watch("branch_id")) : ""}
                             onValueChange={(val) => form.setValue("branch_id", Number(val))}
                         >
                             <SelectTrigger id="branch_id" data-testid="event-branch-select">
-                                <SelectValue placeholder="Select a branch" />
+                                <SelectValue placeholder={t("selectBranch")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {branches.map((b) => (
@@ -132,10 +134,10 @@ export function EventFormDialog({ event, branches = [], onSubmit }: EventFormDia
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="title">Event Title</Label>
+                        <Label htmlFor="title">{t("titleLabel")}</Label>
                         <Input
                             id="title"
-                            placeholder="e.g. Summer Padel Tournament"
+                            placeholder={t("titlePlaceholder")}
                             {...form.register("title")}
                             disabled={loading}
                             data-testid="event-title-input"
@@ -147,7 +149,7 @@ export function EventFormDialog({ event, branches = [], onSubmit }: EventFormDia
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="start_date">Start Date</Label>
+                            <Label htmlFor="start_date">{t("startDateLabel")}</Label>
                             <Input
                                 id="start_date"
                                 type="date"
@@ -161,7 +163,7 @@ export function EventFormDialog({ event, branches = [], onSubmit }: EventFormDia
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="participation_price">Price (EGP)</Label>
+                            <Label htmlFor="participation_price">{t("priceLabel")}</Label>
                             <Input
                                 id="participation_price"
                                 type="number"
@@ -171,7 +173,7 @@ export function EventFormDialog({ event, branches = [], onSubmit }: EventFormDia
                                 disabled={loading}
                                 data-testid="event-price-input"
                             />
-                            <p className="text-[10px] text-muted-foreground mr-1">Leave 0 for free events.</p>
+                            <p className="text-[10px] text-muted-foreground mr-1">{t("priceHint")}</p>
                             {form.formState.errors.participation_price && (
                                 <p className="text-xs text-destructive">{form.formState.errors.participation_price.message}</p>
                             )}
@@ -179,12 +181,12 @@ export function EventFormDialog({ event, branches = [], onSubmit }: EventFormDia
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="max_participants">Max Participants (Optional)</Label>
+                        <Label htmlFor="max_participants">{t("maxParticipantsLabel")}</Label>
                         <Input
                             id="max_participants"
                             type="number"
                             min="1"
-                            placeholder="No limit"
+                            placeholder={t("maxParticipantsPlaceholder")}
                             {...form.register("max_participants", { setValueAs: (v) => v === "" || Number.isNaN(Number(v)) ? undefined : Number(v) })}
                             disabled={loading}
                             data-testid="event-participants-input"
@@ -195,10 +197,10 @@ export function EventFormDialog({ event, branches = [], onSubmit }: EventFormDia
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description">{t("descriptionLabel")}</Label>
                         <Textarea
                             id="description"
-                            placeholder="Event rules, rewards, etc..."
+                            placeholder={t("descriptionPlaceholder")}
                             {...form.register("description")}
                             disabled={loading}
                             data-testid="event-desc-input"
@@ -208,10 +210,10 @@ export function EventFormDialog({ event, branches = [], onSubmit }: EventFormDia
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-                            Cancel
+                            {t("cancelButton")}
                         </Button>
                         <Button type="submit" disabled={loading} data-testid="event-submit-btn">
-                            {loading ? "Saving..." : "Save"}
+                            {loading ? t("savingButton") : t("saveButton")}
                         </Button>
                     </DialogFooter>
                 </form>

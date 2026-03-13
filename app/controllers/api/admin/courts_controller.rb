@@ -2,33 +2,33 @@ module Api
   module Admin
     class CourtsController < BaseController
       def index
-        courts = policy_scope(Court).includes(:branch)
+        courts = policy_scope(Court).includes(:branch, :perks, :hourly_rates)
         courts = courts.where(branch_id: params[:branch_id]) if params[:branch_id].present?
         courts = courts.active_filter(params[:active]) if params[:active].present?
         courts = apply_sort(courts, { "name" => :name, "price_per_hour" => :price_per_hour }, { name: :asc })
 
         result = search_with_pagination(Court, courts, build_court_filter)
-        render json: CourtSerializer.new(result).serializable_hash, status: :ok
+        render json: CourtSerializer.new(result, include: [:perks, :hourly_rates]).serializable_hash, status: :ok
       end
 
       def show
-        court = Court.find(params[:id])
+        court = Court.includes(:perks, :hourly_rates).find(params[:id])
         authorize court
-        render json: CourtSerializer.new(court).serializable_hash, status: :ok
+        render json: CourtSerializer.new(court, include: [:perks, :hourly_rates]).serializable_hash, status: :ok
       end
 
       def create
         court = Court.new(court_params)
         authorize court
         court.save!
-        render json: CourtSerializer.new(court).serializable_hash, status: :created
+        render json: CourtSerializer.new(court, include: [:perks, :hourly_rates]).serializable_hash, status: :created
       end
 
       def update
         court = Court.find(params[:id])
         authorize court
         court.update!(court_params)
-        render json: CourtSerializer.new(court).serializable_hash, status: :ok
+        render json: CourtSerializer.new(court, include: [:perks, :hourly_rates]).serializable_hash, status: :ok
       end
 
       def destroy

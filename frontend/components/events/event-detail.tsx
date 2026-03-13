@@ -7,12 +7,14 @@ import { formatCurrency } from "@/lib/format-currency";
 import { formatDate } from "@/lib/format-date";
 import { formatTime } from "@/lib/format-time";
 import { ArrowLeft, ArrowRight, CalendarIcon, ClockIcon, MapPinIcon, UsersIcon, ShieldIcon } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 
 export function EventDetail({ id }: { id: string }) {
+    const t = useTranslations("eventDetail");
     const { event, loading, error, fetchEvent } = useEventsAPI();
 
     useEffect(() => {
@@ -25,10 +27,10 @@ export function EventDetail({ id }: { id: string }) {
     if (error) {
         return (
             <div className="w-full text-center py-20">
-                <p className="text-destructive mb-4">Error loading event</p>
+                <p className="text-destructive mb-4">{t("errorLoading")}</p>
                 <p className="text-muted-foreground">{error}</p>
                 <Button asChild variant="outline" className="mt-4">
-                    <Link href="/event">Back to Events</Link>
+                    <Link href="/event">{t("backToEvents")}</Link>
                 </Button>
             </div>
         );
@@ -62,7 +64,7 @@ export function EventDetail({ id }: { id: string }) {
             <Button asChild variant="link" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-8 p-0 h-auto gap-2 group">
                 <Link href="/event">
                     <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
-                    Back to all events
+                    {t("backToAll")}
                 </Link>
             </Button>
 
@@ -71,11 +73,11 @@ export function EventDetail({ id }: { id: string }) {
                     <div>
                         <div className="flex flex-wrap items-center gap-3 mb-4">
                             <Badge variant="outline" className="px-3 py-1 font-semibold border-border/60">
-                                {isUpcoming ? "Upcoming" : "Past Event"}
+                                {isUpcoming ? t("status.upcoming") : t("status.past")}
                             </Badge>
                             {!event.participation_price && (
                                 <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-0 px-3 py-1">
-                                    Free Entry
+                                    {t("status.freeEntry")}
                                 </Badge>
                             )}
                         </div>
@@ -86,18 +88,18 @@ export function EventDetail({ id }: { id: string }) {
 
                     <div className="prose prose-lg dark:prose-invert max-w-none">
                         <p className="text-muted-foreground leading-relaxed text-lg">
-                            {event.description || "No description provided for this event."}
+                            {event.description || t("noDescription")}
                         </p>
                     </div>
 
                     <div className="space-y-4 pt-8 border-t border-border/50">
-                        <h3 className="text-2xl font-bold">Event Guidelines</h3>
+                        <h3 className="text-2xl font-bold">{t("guidelinesTitle")}</h3>
                         <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
-                                "Arrive 15 minutes early for check-in",
-                                "Bring appropriate sports gear and shoes",
-                                "Follow the referee's instructions at all times",
-                                "Maintain good sportsmanship"
+                                t("guidelines.arriveEarly"),
+                                t("guidelines.bringGear"),
+                                t("guidelines.followReferee"),
+                                t("guidelines.sportsmanship"),
                             ].map((rule, idx) => (
                                 <li key={idx} className="flex items-start text-muted-foreground">
                                     <ShieldIcon className="w-5 h-5 text-primary mr-3 shrink-0 mt-0.5" />
@@ -117,7 +119,7 @@ export function EventDetail({ id }: { id: string }) {
                                         <CalendarIcon className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-muted-foreground mb-0.5">Date</p>
+                                        <p className="text-sm font-medium text-muted-foreground mb-0.5">{t("labels.date")}</p>
                                         <p className="text-base font-semibold">{formatDate(event.start_date)}</p>
                                     </div>
                                 </div>
@@ -127,7 +129,7 @@ export function EventDetail({ id }: { id: string }) {
                                         <ClockIcon className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-muted-foreground mb-0.5">Time</p>
+                                        <p className="text-sm font-medium text-muted-foreground mb-0.5">{t("labels.time")}</p>
                                         <p className="text-base font-semibold">{formatTime(event.start_date)}</p>
                                     </div>
                                 </div>
@@ -137,13 +139,13 @@ export function EventDetail({ id }: { id: string }) {
                                         <UsersIcon className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-muted-foreground mb-0.5">Capacity</p>
+                                        <p className="text-sm font-medium text-muted-foreground mb-0.5">{t("labels.capacity")}</p>
                                         <p className="text-base font-semibold">
-                                            {event.max_participants ? `${event.max_participants} Participants Max` : "Unlimited Spots"}
+                                            {event.max_participants ? t("capacityMax", { count: event.max_participants }) : t("unlimitedSpots")}
                                         </p>
                                         {event.remaining_spots !== undefined && event.max_participants !== null && (
                                             <p className="text-sm font-medium text-muted-foreground mt-0.5">
-                                                {event.remaining_spots} Spots Remaining
+                                                {t("spotsRemaining", { count: Number(event.remaining_spots ?? 0) })}
                                             </p>
                                         )}
                                     </div>
@@ -151,35 +153,35 @@ export function EventDetail({ id }: { id: string }) {
 
                                 <div className="pt-6 mt-6 border-t border-border/50">
                                     <div className="flex flex-col gap-1 mb-6">
-                                        <span className="text-sm font-medium text-muted-foreground">Participation Price</span>
+                                        <span className="text-sm font-medium text-muted-foreground">{t("labels.participationPrice")}</span>
                                         <span className="text-4xl font-black tracking-tight">
-                                            {event.participation_price ? formatCurrency(Number(event.participation_price)) : "Free"}
+                                            {event.participation_price ? formatCurrency(Number(event.participation_price)) : t("free")}
                                         </span>
                                     </div>
 
                                     {isUpcoming ? (
                                         event.max_participants && event.remaining_spots === 0 ? (
                                             <Button disabled size="lg" className="w-full text-base font-semibold">
-                                                Sold Out
+                                                {t("actions.soldOut")}
                                             </Button>
                                         ) : event.whatsapp_redirect_link ? (
                                             <Button asChild size="lg" className="w-full text-base font-semibold transition-all group">
                                                 <a href={event.whatsapp_redirect_link} target="_blank" rel="noopener noreferrer">
-                                                    Sign Up via WhatsApp
+                                                    {t("actions.signUpWhatsapp")}
                                                     <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
                                                 </a>
                                             </Button>
                                         ) : (
                                             <Button asChild size="lg" className="w-full text-base font-semibold transition-all group">
                                                 <Link href={`/book?event_id=${event.id}`}>
-                                                    Sign Up Now
+                                                    {t("actions.signUpNow")}
                                                     <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
                                                 </Link>
                                             </Button>
                                         )
                                     ) : (
                                         <Button disabled size="lg" className="w-full text-base font-semibold">
-                                            Event Ended
+                                            {t("actions.eventEnded")}
                                         </Button>
                                     )}
                                 </div>

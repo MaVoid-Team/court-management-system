@@ -192,12 +192,20 @@ function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus()
   }, [modifiers.focused])
 
+  // Use consistent date format to prevent hydration mismatch
+  const formatDateForDataAttribute = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const dayNum = String(date.getDate()).padStart(2, '0');
+    return `${dayNum}/${month}/${year}`;
+  };
+
   return (
     <Button
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString()}
+      data-day={formatDateForDataAttribute(day.date)}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&

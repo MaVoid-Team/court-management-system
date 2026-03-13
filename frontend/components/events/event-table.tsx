@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Event } from "@/schemas/event.schema";
 import { Branch } from "@/schemas/branch.schema";
 import { DataTable } from "@/components/shared/data-table";
@@ -17,43 +18,45 @@ interface EventTableProps {
 }
 
 export function EventTable({ events, branches, isLoading, onUpdate, onDelete }: EventTableProps) {
+    const t = useTranslations("events.table");
+
     const getBranchName = (branchId: number) => {
         const branch = branches.find(b => Number(b.id) === branchId);
-        return branch ? branch.name : "Unknown Branch";
+        return branch ? branch.name : t("unknownBranch");
     };
 
     const columns = [
         {
-            header: "Title",
+            header: t("titleHeader"),
             accessorKey: "title" as keyof Event,
             className: "font-medium",
         },
         {
-            header: "Branch",
+            header: t("branchHeader"),
             cell: (e: Event) => getBranchName(e.branch_id),
             className: "text-muted-foreground",
         },
         {
-            header: "Date",
+            header: t("dateHeader"),
             cell: (e: Event) => formatDate(e.start_date, "PPP"),
         },
         {
-            header: "Price",
+            header: t("priceHeader"),
             cell: (e: Event) => formatCurrency(e.participation_price),
         },
         {
-            header: "Limit",
-            cell: (e: Event) => e.max_participants ? `${e.max_participants} qty` : "Unlim.",
+            header: t("limitHeader"),
+            cell: (e: Event) => e.max_participants ? `${e.max_participants} ${t("quantitySuffix")}` : t("unlimited"),
         },
         {
-            header: "Actions",
+            header: t("actionsHeader"),
             className: "text-right",
             cell: (e: Event) => (
                 <div className="flex justify-end gap-2">
                     <EventFormDialog event={e} branches={branches} onSubmit={(data) => onUpdate(e.id, data)} />
                     <ConfirmDialog
-                        title="Delete Event"
-                        description={`Are you sure you want to delete "${e.title}"?`}
+                        title={t("deleteTitle")}
+                        description={t("deleteDescription", { title: e.title })}
                         onConfirm={() => onDelete(e.id)}
                     />
                 </div>
@@ -66,8 +69,8 @@ export function EventTable({ events, branches, isLoading, onUpdate, onDelete }: 
             columns={columns}
             data={events}
             isLoading={isLoading}
-            emptyStateTitle="No events found"
-            emptyStateDescription="Host tournaments or public events by creating one."
+            emptyStateTitle={t("emptyTitle")}
+            emptyStateDescription={t("emptyDescription")}
         />
     );
 }

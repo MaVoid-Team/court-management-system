@@ -6,20 +6,29 @@ module Api
       after_action :verify_authorized, only: %i[show create update]
 
       def show
-        setting = Setting.find_by!(branch_id: resolve_branch_id)
-        authorize setting
-        render json: SettingSerializer.new(setting).serializable_hash, status: :ok
+        branch_id = resolve_branch_id
+        setting = Setting.find_by(branch_id: branch_id)
+        if setting
+          authorize setting
+          render json: SettingSerializer.new(setting).serializable_hash, status: :ok
+        else
+          skip_authorization
+          render json: { data: nil }, status: :ok
+        end
       end
 
       def create
-        setting = Setting.new(setting_params)
+        branch_id = resolve_branch_id
+        setting = Setting.find_or_initialize_by(branch_id: branch_id)
+        setting.assign_attributes(setting_params)
         authorize setting
         setting.save!
         render json: SettingSerializer.new(setting).serializable_hash, status: :created
       end
 
       def update
-        setting = Setting.find_by!(branch_id: resolve_branch_id)
+        branch_id = resolve_branch_id
+        setting = Setting.find_by!(branch_id: branch_id)
         authorize setting
         setting.update!(setting_params)
         render json: SettingSerializer.new(setting).serializable_hash, status: :ok
@@ -28,10 +37,13 @@ module Api
       private
 
       def resolve_branch_id
-        if current_admin.super_admin? && params[:branch_id].present?
-          params[:branch_id]
-        else
+        bid = params[:branch_id].presence || params.dig(:setting, :branch_id).presence
+        if current_admin.super_admin? && bid.present?
+          bid
+        elsif current_admin.branch_id.present?
           current_admin.branch_id
+        else
+          raise ActiveRecord::RecordNotFound, "Branch ID is required"
         end
       end
 
@@ -39,7 +51,8 @@ module Api
         params.require(:setting).permit(
           :branch_id, :whatsapp_number,
           :contact_email, :contact_phone,
-          :opening_hour, :closing_hour
+          :opening_hour, :closing_hour,
+          :booking_terms, :payment_number
         )
       end
     end

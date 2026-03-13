@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { BlockedSlot } from "@/schemas/blocked-slot.schema";
 import { Branch } from "@/schemas/branch.schema";
 import { Court } from "@/schemas/court.schema";
@@ -19,46 +20,55 @@ interface BlockedSlotTableProps {
 }
 
 export function BlockedSlotTable({ blockedSlots, branches, courts, isLoading, onUpdate, onDelete }: BlockedSlotTableProps) {
+    const t = useTranslations("blockedSlots.table");
     const getBranchName = (branchId: number) => {
         const branch = branches.find(b => Number(b.id) === branchId);
-        return branch ? branch.name : "Unknown";
+        return branch ? branch.name : t("unknown");
     };
 
     const getCourtName = (courtId: number) => {
         const court = courts.find(c => Number(c.id) === courtId);
-        return court ? court.name : "Unknown";
+        return court ? court.name : t("unknown");
     };
 
     const columns = [
         {
-            header: "Date",
+            header: t("dateHeader"),
             cell: (bs: BlockedSlot) => formatDate(bs.date, "PP"),
-            className: "font-medium",
+            className: "font-medium whitespace-nowrap align-middle w-[140px]",
         },
         {
-            header: "Location",
+            header: t("locationHeader"),
             cell: (bs: BlockedSlot) => (
                 <div className="flex flex-col">
                     <span className="text-sm font-medium">{getCourtName(bs.court_id)}</span>
                     <span className="text-xs text-muted-foreground">{getBranchName(bs.branch_id)}</span>
                 </div>
             ),
+            className: "align-middle min-w-[220px]",
         },
         {
-            header: "From",
+            header: t("fromHeader"),
             cell: (bs: BlockedSlot) => formatTime(bs.start_time),
+            className: "whitespace-nowrap align-middle w-[110px]",
         },
         {
-            header: "To",
+            header: t("toHeader"),
             cell: (bs: BlockedSlot) => formatTime(bs.end_time),
+            className: "whitespace-nowrap align-middle w-[110px]",
         },
         {
-            header: "Reason",
-            accessorKey: "reason" as keyof BlockedSlot,
+            header: t("reasonHeader"),
+            cell: (bs: BlockedSlot) => (
+                <span className="block truncate" title={bs.reason}>
+                    {bs.reason}
+                </span>
+            ),
+            className: "align-middle min-w-[180px] max-w-[280px]",
         },
         {
-            header: "Actions",
-            className: "text-right",
+            header: t("actionsHeader"),
+            className: "text-right align-middle whitespace-nowrap w-[120px]",
             cell: (bs: BlockedSlot) => (
                 <div className="flex justify-end gap-2">
                     <BlockedSlotFormDialog
@@ -68,8 +78,8 @@ export function BlockedSlotTable({ blockedSlots, branches, courts, isLoading, on
                         onSubmit={(data) => onUpdate(bs.id, data)}
                     />
                     <ConfirmDialog
-                        title="Unblock Time Slot"
-                        description={`Are you sure you want to remove this blocked time segment? It will instantly become bookable.`}
+                        title={t("deleteTitle")}
+                        description={t("deleteDescription")}
                         onConfirm={() => onDelete(bs.id)}
                     />
                 </div>
@@ -82,8 +92,8 @@ export function BlockedSlotTable({ blockedSlots, branches, courts, isLoading, on
             columns={columns}
             data={blockedSlots}
             isLoading={isLoading}
-            emptyStateTitle="No blocked slots"
-            emptyStateDescription="Use blocked slots to mark courts as unavailable for maintenance or private events."
+            emptyStateTitle={t("emptyTitle")}
+            emptyStateDescription={t("emptyDescription")}
         />
     );
 }

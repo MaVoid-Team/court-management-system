@@ -10,12 +10,14 @@ import { Label } from "@/components/ui/label";
 import { loginFormSchema, LoginFormData } from "@/schemas/auth.schema";
 import { useAuthAPI } from "@/hooks/api/use-auth";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { useAuthContext } from "@/contexts/auth-context";
+import { useTranslations } from "next-intl";
 
 export function LoginForm() {
+    const t = useTranslations("login");
     const router = useRouter();
     const { isAuthenticated, loading: authLoading } = useAuthContext();
     const { login, loading, error } = useAuthAPI();
@@ -38,7 +40,7 @@ export function LoginForm() {
     const onSubmit = async (data: LoginFormData) => {
         const res = await login(data);
         if (res.success) {
-            toast.success("Login successful");
+            toast.success(t("toast.success"));
             router.push("/dashboard");
         }
     };
@@ -46,19 +48,19 @@ export function LoginForm() {
     return (
         <Card className="w-full max-w-sm space-y-6 p-8 mt-10 transition-all hover:shadow-md animate-in slide-in-from-bottom-8 duration-500">
             <div className="space-y-2 text-center">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">Admin Login</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("title")}</h1>
                 <p className="text-sm text-muted-foreground">
-                    Enter your email and password to access the dashboard.
+                    {t("subtitle")}
                 </p>
             </div>
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-testid="login-form" noValidate>
                 <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{t("emailLabel")}</Label>
                     <Input
                         id="email"
                         type="email"
-                        placeholder="m@example.com"
+                        placeholder={t("emailPlaceholder")}
                         {...form.register("email")}
                         disabled={loading}
                         data-testid="login-email-input"
@@ -72,7 +74,7 @@ export function LoginForm() {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">{t("passwordLabel")}</Label>
                     <Input
                         id="password"
                         type="password"
@@ -89,7 +91,7 @@ export function LoginForm() {
                 </div>
 
                 <Button type="submit" className="w-full mt-4" disabled={loading} data-testid="login-submit-btn">
-                    {loading ? "Logging in..." : "Log in"}
+                    {loading ? t("loggingIn") : t("loginButton")}
                     {!loading && <LogIn className="ml-2 h-4 w-4" />}
                 </Button>
             </form>

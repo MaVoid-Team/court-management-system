@@ -10,6 +10,9 @@ class Court < ApplicationRecord
   belongs_to :branch
   has_many :bookings, dependent: :destroy
   has_many :blocked_slots, dependent: :destroy
+  has_many :perks, dependent: :destroy
+  has_many :hourly_rates, class_name: "CourtHourlyRate", dependent: :destroy
+  has_many :reviews, dependent: :destroy
 
   validates :name, presence: true
   validates :price_per_hour, presence: true, numericality: { greater_than: 0 }

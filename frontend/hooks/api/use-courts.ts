@@ -13,9 +13,19 @@ export function useCourtsAPI() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const flattenResource = (resource: any): Court => ({
+    const resolveIncluded = (refs: any[], included: any[]) => {
+        if (!refs || !included) return [];
+        return refs.map((ref: any) => {
+            const found = included.find((inc: any) => inc.id === ref.id && inc.type === ref.type);
+            return found ? { id: found.id, ...found.attributes } : { id: ref.id };
+        });
+    };
+
+    const flattenResource = (resource: any, included: any[] = []): Court => ({
         id: resource.id,
         ...resource.attributes,
+        perks: resolveIncluded(resource.relationships?.perks?.data, included),
+        hourly_rates: resolveIncluded(resource.relationships?.hourly_rates?.data, included),
     });
 
     const fetchCourts = useCallback(async (params?: { branch_id?: number; page?: number; per_page?: number }) => {
@@ -26,7 +36,8 @@ export function useCourtsAPI() {
             const response = await api.get(`/api/admin/courts${query}`);
 
             if (response.data?.data) {
-                setCourts(response.data.data.map(flattenResource));
+                const included = response.data.included || [];
+                setCourts(response.data.data.map((r: any) => flattenResource(r, included)));
             }
 
             const totalCount = Number(response.headers["x-total-count"] || 0);
@@ -50,7 +61,8 @@ export function useCourtsAPI() {
         try {
             const response = await api.get(`/api/admin/courts/${id}`);
             if (response.data?.data) {
-                const flatCourt = flattenResource(response.data.data);
+                const included = response.data.included || [];
+                const flatCourt = flattenResource(response.data.data, included);
                 setCourt(flatCourt);
                 return { success: true, data: flatCourt };
             }
@@ -71,7 +83,8 @@ export function useCourtsAPI() {
             const response = await api.get(`/api/courts${query}`);
 
             if (response.data?.data) {
-                setCourts(response.data.data.map(flattenResource));
+                const included = response.data.included || [];
+                setCourts(response.data.data.map((r: any) => flattenResource(r, included)));
             }
 
             setPagination(null);

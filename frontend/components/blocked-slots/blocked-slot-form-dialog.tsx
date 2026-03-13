@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BlockedSlot, blockedSlotFormSchema, BlockedSlotFormData } from "@/schemas/blocked-slot.schema";
@@ -26,7 +27,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Plus, Edit } from "lucide-react";
-import { formatTime } from "@/lib/format-time";
 
 interface BlockedSlotFormDialogProps {
     blockedSlot?: BlockedSlot;
@@ -36,6 +36,7 @@ interface BlockedSlotFormDialogProps {
 }
 
 export function BlockedSlotFormDialog({ blockedSlot, branches = [], courts = [], onSubmit }: BlockedSlotFormDialogProps) {
+    const t = useTranslations("blockedSlots.form");
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const isEdit = !!blockedSlot;
@@ -105,22 +106,22 @@ export function BlockedSlotFormDialog({ blockedSlot, branches = [], courts = [],
                 ) : (
                     <Button data-testid="create-blocked-slot-btn">
                         <Plus className="mr-2 h-4 w-4" />
-                        Block Slots
+                        {t("createButton")}
                     </Button>
                 )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>{isEdit ? "Edit Blocked Slot" : "Block Sub-slots"}</DialogTitle>
+                    <DialogTitle>{isEdit ? t("editTitle") : t("createTitle")}</DialogTitle>
                     <DialogDescription>
                         {isEdit
-                            ? "Update blocked hours or reason."
-                            : "Prevent booking for specific hours due to maintenance or other reasons."}
+                            ? t("editDescription")
+                            : t("createDescription")}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" data-testid="blocked-slot-form" noValidate>
                     <div className="space-y-2">
-                        <Label htmlFor="branch_id">Branch</Label>
+                        <Label htmlFor="branch_id">{t("branchLabel")}</Label>
                         <Select
                             disabled={loading || isEdit}
                             value={form.watch("branch_id") ? String(form.watch("branch_id")) : ""}
@@ -130,7 +131,7 @@ export function BlockedSlotFormDialog({ blockedSlot, branches = [], courts = [],
                             }}
                         >
                             <SelectTrigger id="branch_id" data-testid="bs-branch-select">
-                                <SelectValue placeholder="Select a branch" />
+                                <SelectValue placeholder={t("selectBranch")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {branches.map((b) => (
@@ -146,14 +147,14 @@ export function BlockedSlotFormDialog({ blockedSlot, branches = [], courts = [],
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="court_id">Court</Label>
+                        <Label htmlFor="court_id">{t("courtLabel")}</Label>
                         <Select
                             disabled={loading || isEdit || !selectedBranchId}
                             value={form.watch("court_id") ? String(form.watch("court_id")) : ""}
                             onValueChange={(val) => form.setValue("court_id", Number(val))}
                         >
                             <SelectTrigger id="court_id" data-testid="bs-court-select">
-                                <SelectValue placeholder="Select a court" />
+                                <SelectValue placeholder={t("selectCourt")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {filteredCourts.map((c) => (
@@ -169,7 +170,7 @@ export function BlockedSlotFormDialog({ blockedSlot, branches = [], courts = [],
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="date">Date</Label>
+                        <Label htmlFor="date">{t("dateLabel")}</Label>
                         <Input
                             id="date"
                             type="date"
@@ -184,7 +185,7 @@ export function BlockedSlotFormDialog({ blockedSlot, branches = [], courts = [],
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="start_time">Start Time</Label>
+                            <Label htmlFor="start_time">{t("startTimeLabel")}</Label>
                             <Input
                                 id="start_time"
                                 type="time"
@@ -198,7 +199,7 @@ export function BlockedSlotFormDialog({ blockedSlot, branches = [], courts = [],
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="end_time">End Time</Label>
+                            <Label htmlFor="end_time">{t("endTimeLabel")}</Label>
                             <Input
                                 id="end_time"
                                 type="time"
@@ -213,10 +214,10 @@ export function BlockedSlotFormDialog({ blockedSlot, branches = [], courts = [],
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="reason">Reason for blocking</Label>
+                        <Label htmlFor="reason">{t("reasonLabel")}</Label>
                         <Input
                             id="reason"
-                            placeholder="e.g. Maintenance, Private Event"
+                            placeholder={t("reasonPlaceholder")}
                             {...form.register("reason")}
                             disabled={loading}
                             data-testid="bs-reason-input"
@@ -228,10 +229,10 @@ export function BlockedSlotFormDialog({ blockedSlot, branches = [], courts = [],
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-                            Cancel
+                            {t("cancel")}
                         </Button>
                         <Button type="submit" disabled={loading} data-testid="bs-submit-btn">
-                            {loading ? "Saving..." : "Save"}
+                            {loading ? t("saving") : t("save")}
                         </Button>
                     </DialogFooter>
                 </form>

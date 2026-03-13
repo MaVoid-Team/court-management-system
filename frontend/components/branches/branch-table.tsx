@@ -5,7 +5,16 @@ import { DataTable } from "@/components/shared/data-table";
 import { BranchFormDialog } from "./branch-form-dialog";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/format-date";
+import { useAuthContext } from "@/contexts/auth-context";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface BranchTableProps {
     branches: Branch[];
@@ -15,6 +24,9 @@ interface BranchTableProps {
 }
 
 export function BranchTable({ branches, isLoading, onUpdate, onDelete }: BranchTableProps) {
+    const { admin } = useAuthContext();
+    const isSuperAdmin = admin?.role === "super_admin";
+
     const columns = [
         {
             header: "Name",
@@ -47,11 +59,26 @@ export function BranchTable({ branches, isLoading, onUpdate, onDelete }: BranchT
             cell: (b: Branch) => (
                 <div className="flex justify-end gap-2">
                     <BranchFormDialog branch={b} onSubmit={(data) => onUpdate(b.id, data)} />
-                    <ConfirmDialog
-                        title="Delete Branch"
-                        description={`Are you sure you want to delete ${b.name}? This will affect all courts and bookings in this branch.`}
-                        onConfirm={() => onDelete(b.id)}
-                    />
+                    {isSuperAdmin ? (
+                        <ConfirmDialog
+                            title="Delete Branch"
+                            description={`Are you sure you want to delete ${b.name}? This will affect all courts and bookings in this branch.`}
+                            onConfirm={() => onDelete(b.id)}
+                        />
+                    ) : (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="destructive" size="icon" disabled>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Only super admins can delete branches</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
                 </div>
             ),
         },
