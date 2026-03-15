@@ -96,17 +96,6 @@ services:
         condition: service_healthy
     command: bundle exec sidekiq -C config/sidekiq.yml
 
-  frontend:
-    build: ./frontend
-    env_file: .env
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
-      NEXT_PUBLIC_DEFAULT_BRANCH_ID: ${NEXT_PUBLIC_DEFAULT_BRANCH_ID:-1}
-    ports:
-      - "3080:3000"
-    depends_on:
-      - app
-
 volumes:
   postgres_data:
   redis_data:
