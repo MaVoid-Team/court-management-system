@@ -42,7 +42,7 @@ services:
       retries: 5
 
   app:
-    build: .
+    image: ghcr.io/mavoid-team/court_management_system-backend:latest
     env_file: .env
     volumes:
       - ./config/master.key:/app/config/master.key:ro
@@ -76,7 +76,7 @@ services:
       bash -c "bundle exec rails db:prepare && bundle exec puma -C config/puma.rb"
 
   sidekiq:
-    build: .
+    image: ghcr.io/mavoid-team/court_management_system-backend:latest
     env_file: .env
     volumes:
       - ./config/master.key:/app/config/master.key:ro
@@ -103,9 +103,7 @@ services:
     command: bundle exec sidekiq -C config/sidekiq.yml
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
+    image: ghcr.io/mavoid-team/court_management_system-frontend:latest
     environment:
       NODE_ENV: production
       PORT: 3000
