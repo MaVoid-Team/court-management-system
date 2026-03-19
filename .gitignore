@@ -30,4 +30,10 @@
 
 # Ignore key files for decrypting credentials and more.
 /config/*.key
+/Agent-Skills/
+/Brand/
+output.txt
+.DS_Store
+*.swp
+*~
 
