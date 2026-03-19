@@ -51,7 +51,7 @@ export default async function LocaleLayout({
           <ThemeProvider>
             <AuthProvider>
               <TooltipProvider>
-                {children}
+                <main>{children}</main>
               </TooltipProvider>
               <Toaster position="bottom-right" theme="dark" richColors />
             </AuthProvider>
