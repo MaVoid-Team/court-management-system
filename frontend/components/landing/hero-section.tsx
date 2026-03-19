@@ -19,8 +19,8 @@ export function HeroSection() {
         opacity: [0, 1],
         translateY: ["110%", "0%"],
         rotateZ: [8, 0],
-        duration: 900,
-        delay: stagger(28, { start: 100 }),
+        duration: 800,
+        delay: stagger(20, { start: 0 }),
         easing: "easeOutExpo",
       });
 
@@ -28,8 +28,8 @@ export function HeroSection() {
       animate(".hero-sub", {
         opacity: [0, 1],
         translateY: [30, 0],
-        duration: 900,
-        delay: 600,
+        duration: 800,
+        delay: 300,
         easing: "easeOutExpo",
       });
 
@@ -37,8 +37,8 @@ export function HeroSection() {
       animate(".hero-btn", {
         opacity: [0, 1],
         translateY: [20, 0],
-        delay: stagger(120, { start: 800 }),
-        duration: 700,
+        delay: stagger(100, { start: 400 }),
+        duration: 600,
         easing: "easeOutExpo",
       });
 
@@ -157,7 +157,7 @@ export function HeroSection() {
       </div>
 
       {/* Scroll cue */}
-      <div className="scroll-cue opacity-0 absolute bottom-8 start-8 md:start-16 lg:start-24 flex items-center gap-2 text-muted-foreground/60">
+      <div className="scroll-cue opacity-0 absolute bottom-8 start-8 md:start-16 lg:start-24 flex items-center gap-2 text-muted-foreground/80">
         <span className="text-[11px] tracking-[0.2em] uppercase font-medium">
           {t("scrollToExplore")}
         </span>

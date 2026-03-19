@@ -49,7 +49,7 @@ export function LandingFooter() {
           {/* Link columns */}
           {Object.entries(links).map(([category, items]) => (
             <div key={category}>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 mb-5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80 mb-5">
                 {category}
               </p>
               <ul className="space-y-3">
@@ -71,7 +71,7 @@ export function LandingFooter() {
 
         {/* Bottom bar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-12 pt-8 border-t border-border/30">
-          <p className="text-xs text-muted-foreground/50">
+          <p className="text-xs text-muted-foreground/80">
             {t("copyright", { year: currentYear })}
           </p>
         </div>
