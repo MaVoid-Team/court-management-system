@@ -8,7 +8,8 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 
 # Copy source and build
 COPY frontend/ .
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+# Reduced memory limit to 1024MB to avoid triggering the VPS Out-Of-Memory (OOM) killer
+ENV NODE_OPTIONS="--max-old-space-size=1024"
 RUN --mount=type=cache,target=/app/.next/cache \
     npm run build
 
