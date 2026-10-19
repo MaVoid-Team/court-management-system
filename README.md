@@ -1,33 +1,39 @@
 # Court Management System
 
-API for managing court bookings across multiple branches.
+A Rails API for booking sports courts across multiple club branches — pick a free hour, reserve it, and run the desk from one place.
 
-## API Documentation
+## Who it's for
 
-- **[API Reference](docs/API.md)** — Full REST API documentation including authentication, endpoints, parameters, and response formats.
-- **Postman Collection** — Import `docs/Court_Management_API.postman_collection.json` into Postman to test the API. Run **Admin API → Auth → Login** first to obtain a token; it will be stored automatically for subsequent requests.
+Club owners, branch managers, and anyone building a booking app for venues with more than one location. If you run padel or tennis courts and you're tired of double-booked hours, this is the backend.
+
+## What you can do
+
+- Check a court's free hours for a given day and lock in a slot before it disappears
+- Run each location on its own — courts, prices, opening hours, and staff stay scoped to the branch
+- Sell hour packages, publish events, and let players join a tournament
+- Block a court for maintenance, cancel a reservation, or mark a payment as paid
+- Give a branch admin access to just their site; keep a super admin over the whole club
+
+## Try it
+
+- **[API Reference](docs/API.md)** — auth, endpoints, params, and response shapes
+- **[Postman collection](docs/Court_Management_API.postman_collection.json)** — import it, then run **Admin API → Auth → Login** so the token sticks for the rest of the requests
+
+```bash
+# Ruby 3.2.6 and PostgreSQL
+bin/setup
+bin/rails db:seed   # sample branches, courts, and bookings
+# API: http://localhost:3000
+```
+
+Full setup, sample logins, tests, and Docker notes live in **[docs/SETUP.md](docs/SETUP.md)**.
+
+## How it works
+
+Public routes cover availability, bookings, packages, events, and reviews — no login required to reserve a court. Staff use a token from the admin login endpoint. Super admins see every branch; branch admins stay in theirs. Search is optional when you turn on Meilisearch.
 
 ---
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Built by [Ziad Ahmed](https://github.com/Ziad-NasrEldin) at [MaVoid](https://mavoid.com).
 
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+[Website](https://mavoid.com) · [LinkedIn](https://linkedin.com/in/ziad-ahmed-634202332) · [GitHub](https://github.com/Ziad-NasrEldin)
